@@ -1,0 +1,392 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mesa de rol</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Alegreya:wght@500;700&family=Alegreya+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#12151c;--panel:#1a1f2a;--line:#2b3242;--bone:#ebe5d6;--mute:#9a9fae;--acc:#5bbfb0;--bad:#d9566a;--gold:#e3b04b}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{background:var(--ink);color:var(--bone);font:16px/1.4 "Alegreya Sans",system-ui,sans-serif}
+h1,h2,h3{font-family:Alegreya,Georgia,serif;margin:0}
+h2{font-size:1.15rem}h3{font-size:1rem}
+button,input,textarea{font:inherit;color:inherit}
+button,.btn{display:inline-block;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:.4rem .7rem;cursor:pointer}
+button:hover:not(:disabled),.btn:hover{border-color:var(--acc)}
+button:disabled{opacity:.45;cursor:default}
+.pri{background:var(--acc);color:#0b1412;border-color:var(--acc);font-weight:700}
+input[type=text],textarea{background:var(--ink);border:1px solid var(--line);border-radius:6px;padding:.45rem .6rem;min-width:0}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+.hide{display:none!important}
+.mute{color:var(--mute)}
+header{height:57px;display:flex;align-items:center;gap:.75rem;padding:0 1rem;border-bottom:1px solid var(--line)}
+header h1{font-size:1.4rem}
+.sp{flex:1}
+#roomtag{cursor:pointer;color:var(--gold)}
+#myav{width:36px;height:36px;border-radius:50%;object-fit:cover;cursor:pointer;display:block}
+#myname{width:150px}
+#lobby{max-width:420px;margin:8vh auto;padding:0 1.25rem;display:grid;gap:1rem}
+.row{display:flex;gap:.5rem}.row input{flex:1}
+#app{display:grid;grid-template-columns:minmax(0,1fr) 340px;height:calc(100% - 57px)}
+main{overflow-y:auto;padding:.75rem;display:grid;gap:.75rem;align-content:start}
+.stage{position:relative;container-type:inline-size;width:min(100%,calc((100vh - 330px)*1.7778));aspect-ratio:16/9;margin:0 auto;background:#0a0c11 center/cover no-repeat;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.slot{position:absolute;top:0;bottom:0;display:flex;justify-content:center;align-items:flex-end}
+.spr{max-height:84%;max-width:96%;margin-bottom:-2%;filter:brightness(.55);transform-origin:bottom;transition:filter .25s,transform .25s;user-select:none}
+.spr.on{filter:none;transform:scale(1.04)}
+.num{position:absolute;top:7%;left:10%;color:#ff7b8f;font:700 clamp(14px,3cqw,28px) Alegreya,serif;text-shadow:0 1px 3px #000}
+.vn{position:absolute;left:3%;right:3%;bottom:3%;z-index:5;background:rgba(10,12,17,.86);border:1px solid var(--line);border-radius:8px;padding:.6em .9em;min-height:4.2em;font-size:clamp(13px,2.3cqw,22px)}
+.vn b{font:700 1.1em Alegreya,serif;color:var(--gold)}
+.vn p{margin:.2em 0 0;overflow-wrap:anywhere}
+#toasts{position:absolute;top:3%;right:3%;z-index:6;display:grid;gap:.3rem;justify-items:end}
+.toast{background:var(--ink);border:1px solid var(--acc);border-radius:6px;padding:.25rem .6rem;font-size:clamp(12px,2cqw,18px)}
+.bar{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}
+#chars{display:flex;flex-wrap:wrap;gap:.5rem;margin:.5rem 0}
+.ch{position:relative;width:84px;text-align:center;background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:.3rem;cursor:pointer}
+.ch.on{border-color:var(--acc)}
+.ch img{width:100%;height:64px;object-fit:contain;display:block}
+.ch span{display:block;font-size:.85rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ch .x{position:absolute;top:-8px;right:-8px;padding:0 .4rem;border-radius:50%;line-height:1.2}
+aside{display:flex;flex-direction:column;min-height:0;border-left:1px solid var(--line);background:var(--panel)}
+.tabs{display:flex;border-bottom:1px solid var(--line)}
+.tabs button{flex:1;border:0;border-radius:0;background:none;border-bottom:2px solid transparent}
+.tabs .on{border-bottom-color:var(--acc)}
+#pChat{display:flex;flex-direction:column;flex:1;min-height:0}
+#pNotes{flex:1;overflow-y:auto;padding:.75rem;display:grid;gap:.75rem;align-content:start}
+.card textarea{width:100%;min-height:110px;margin-top:.3rem;resize:vertical}
+#log{flex:1;overflow-y:auto;padding:.75rem;display:grid;gap:.6rem;align-content:start}
+.msg{display:flex;gap:.5rem}
+.pic{width:32px;height:32px;border-radius:50%;object-fit:cover;flex:none}
+.body p{margin:0;overflow-wrap:anywhere}
+.sys{color:var(--mute);font-style:italic}
+.say p{font-style:italic}
+.roll{font-family:Alegreya,serif;font-size:1.1rem}
+.res{display:inline-block;min-width:2rem;text-align:center;background:var(--ink);border:1px solid var(--acc);border-radius:6px;padding:0 .4rem;font-weight:700}
+.crit{border-color:var(--gold);color:var(--gold)}.fail{border-color:var(--bad);color:var(--bad)}
+#dice{display:flex;flex-wrap:wrap;gap:.35rem;align-items:center;padding:.5rem .75rem;border-top:1px solid var(--line)}
+#dice button{padding:.3rem .55rem}
+#cf{display:flex;gap:.5rem;padding:.5rem .75rem .75rem}#cf input{flex:1}
+@media(max-width:820px){#app{grid-template-columns:1fr;height:auto}aside{height:75vh;border-left:0;border-top:1px solid var(--line)}.stage{width:100%}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Mesa de rol</h1>
+  <span id="roomtag" class="hide" title="Clic para copiar el código"></span>
+  <span class="sp"></span>
+  <label title="Cambiar foto de perfil"><img id="myav" alt="Tu foto"><input id="avfile" type="file" accept="image/*" hidden></label>
+  <input id="myname" type="text" placeholder="Tu nombre" maxlength="24" aria-label="Tu nombre">
+</header>
+
+<section id="lobby">
+  <h2>Entra a la mesa</h2>
+  <p class="mute">Pon tu nombre y tu foto arriba. El DM crea la sala y comparte el código; los jugadores lo escriben aquí.</p>
+  <button class="pri" id="mk">Crear sala (soy el DM)</button>
+  <div class="row"><input type="text" id="code" placeholder="Código de sala" maxlength="4" aria-label="Código de sala"><button id="jn">Unirme</button></div>
+  <p id="status" role="status" class="mute"></p>
+</section>
+
+<div id="app" class="hide">
+  <main>
+    <div id="stage" class="stage">
+      <div id="toasts"></div>
+      <div id="vn" class="vn hide"><b id="vnn"></b><p id="vnt"></p></div>
+    </div>
+    <div class="bar"><span id="turntxt" class="mute"></span><button id="endturn">Terminar turno</button></div>
+    <form id="sf" class="row"><input id="st" type="text" maxlength="400" autocomplete="off" aria-label="Texto del turno"><button class="pri">Decir</button></form>
+    <div class="bar dm hide">
+      <label class="btn">Cambiar fondo<input id="bgfile" type="file" accept="image/*" hidden></label>
+      <button id="bgclear">Quitar fondo</button>
+    </div>
+    <section class="pl">
+      <h2>Mi personaje</h2>
+      <div id="poses" class="bar" style="margin-top:.4rem"></div>
+      <p class="mute" style="margin:.4rem 0 0">Tus personajes guardados (se quedan en este navegador):</p>
+      <div id="chars"></div>
+      <div class="bar">
+        <input type="text" id="cname" placeholder="Nombre del personaje nuevo" maxlength="24">
+        <label class="btn">Crear con PNG<input id="cfiles" type="file" accept="image/*" multiple hidden></label>
+        <label class="btn">Añadir poses al actual<input id="addpose" type="file" accept="image/*" multiple hidden></label>
+      </div>
+    </section>
+  </main>
+  <aside>
+    <div class="tabs"><button id="tChat" class="on">Chat</button><button id="tNotes">Estados</button></div>
+    <div id="pChat">
+      <div id="log" aria-live="polite"></div>
+      <div id="dice"><label class="dm hide mute"><input type="checkbox" id="secret"> Secreta</label></div>
+      <form id="cf"><input id="ct" type="text" maxlength="500" placeholder="Chat fuera de personaje" autocomplete="off" aria-label="Mensaje"><button class="pri">Enviar</button></form>
+    </div>
+    <div id="pNotes" class="hide"></div>
+  </aside>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
+<script>
+const $=s=>document.querySelector(s);
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const clamp=(v,a,b)=>Math.min(b,Math.max(a,+v||0));
+const clip=(s,n)=>String(s==null?'':s).slice(0,n);
+const rid=()=>Math.random().toString(36).slice(2,10);
+const PFX='dndvn-',DICE=[4,6,8,10,12,20,100];
+let peer,isHost=false,conns=[],hostConn=null,me='',cur=null,chars=[];
+let S={bg:'',players:{},order:[],turn:0,line:null,chat:[],notes:{}};
+let prof={name:'',avatar:''};
+try{Object.assign(prof,JSON.parse(localStorage.getItem('prof')||'{}'))}catch(e){}
+const stage=$('#stage');
+const pname=id=>{const p=S.players[id];return p?(p.cn||p.n):''};
+
+/* ---------- personajes guardados (IndexedDB) ---------- */
+const idb=new Promise((ok,no)=>{const r=indexedDB.open('mesa',1);r.onupgradeneeded=()=>r.result.createObjectStore('chars',{keyPath:'id'});r.onsuccess=()=>ok(r.result);r.onerror=no});
+const tx=(m,f)=>idb.then(d=>new Promise((ok,no)=>{const r=f(d.transaction('chars',m).objectStore('chars'));r.onsuccess=()=>ok(r.result);r.onerror=no}));
+const dbAll=()=>tx('readonly',s=>s.getAll()),dbPut=c=>tx('readwrite',s=>s.put(c)),dbDel=id=>tx('readwrite',s=>s.delete(id));
+dbAll().then(a=>{chars=a;renderMy()}).catch(()=>{});
+
+/* ---------- perfil e imágenes ---------- */
+function avSrc(name,av){
+  if(av)return av;
+  const ch=(name||'?')[0].replace(/[<>&]/g,'?');
+  return 'data:image/svg+xml,'+encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'><rect width='40' height='40' fill='#2b3242'/><text x='20' y='27' font-size='20' text-anchor='middle' fill='#ebe5d6' font-family='sans-serif'>"+ch+"</text></svg>");
+}
+function paintProf(){$('#myav').src=avSrc(prof.name,prof.avatar);$('#myname').value=prof.name}
+function saveProf(){try{localStorage.setItem('prof',JSON.stringify(prof))}catch(e){}}
+$('#myname').oninput=e=>{prof.name=e.target.value;saveProf();if(!prof.avatar)$('#myav').src=avSrc(prof.name,'')};
+$('#avfile').onchange=async e=>{const f=e.target.files[0];if(!f)return;try{prof.avatar=await shrink(f,96,'image/jpeg',.8);saveProf();paintProf()}catch(x){}};
+function shrink(file,max,type,q,trim){return new Promise((ok,no)=>{
+  const img=new Image(),u=URL.createObjectURL(file);
+  img.onload=()=>{
+    const k=Math.min(1,max/Math.max(img.width,img.height));
+    let c=document.createElement('canvas');c.width=Math.round(img.width*k);c.height=Math.round(img.height*k);
+    c.getContext('2d').drawImage(img,0,0,c.width,c.height);URL.revokeObjectURL(u);
+    if(trim){ /* recorta bordes transparentes para que todos queden pegados al borde inferior */
+      const w=c.width,h=c.height,d=c.getContext('2d').getImageData(0,0,w,h).data;
+      let x0=w,y0=h,x1=0,y1=0;
+      for(let y=0;y<h;y++)for(let x=0;x<w;x++)if(d[(y*w+x)*4+3]>8){if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y}
+      if(x1>x0&&y1>y0){const o=document.createElement('canvas');o.width=x1-x0+1;o.height=y1-y0+1;
+        o.getContext('2d').drawImage(c,x0,y0,o.width,o.height,0,0,o.width,o.height);c=o}
+    }
+    ok(c.toDataURL(type,q));
+  };
+  img.onerror=no;img.src=u;
+})}
+
+/* ---------- conexión ---------- */
+const setStatus=t=>{$('#status').textContent=t};
+window.addEventListener('error',e=>setStatus('Error en la página: '+e.message));
+const SLOW='No se pudo conectar con el servidor de PeerJS. Revisa tu internet, prueba sin VPN ni bloqueadores y vuelve a intentarlo.';
+function needName(){
+  if(typeof Peer==='undefined'){setStatus('No se pudo cargar PeerJS. Revisa tu conexión.');return false}
+  if(!prof.name.trim()){setStatus('Escribe tu nombre arriba para continuar.');$('#myname').focus();return false}
+  return true;
+}
+function enter(code){
+  $('#lobby').classList.add('hide');$('#app').classList.remove('hide');
+  const t=$('#roomtag');t.textContent='Sala '+code;t.classList.remove('hide');
+  t.onclick=()=>navigator.clipboard&&navigator.clipboard.writeText(code);
+  document.querySelectorAll('.dm').forEach(e=>e.classList.toggle('hide',!isHost));
+  document.querySelectorAll('.pl').forEach(e=>e.classList.toggle('hide',isHost));
+  renderAll();
+}
+function hostRoom(){
+  if(!needName())return;
+  isHost=true;me='host';
+  const code=Math.random().toString(36).slice(2,6).toUpperCase();
+  setStatus('Creando sala…');
+  peer=new Peer(PFX+code);
+  const to=setTimeout(()=>setStatus(SLOW),10000);
+  peer.on('open',()=>{clearTimeout(to);enter(code);process({t:'sys',text:'Sala creada. Comparte el código '+code+' con tus jugadores.'},null)});
+  peer.on('connection',c=>{
+    c.on('open',()=>{conns.push(c);c.send({t:'state',s:S})});
+    c.on('data',m=>process(m,c));
+    c.on('close',()=>{conns=conns.filter(x=>x!==c);const n=pname(c.peer);
+      if(S.players[c.peer]){out({t:'left',id:c.peer});out({t:'sys',text:n+' salió'})}});
+  });
+  peer.on('error',e=>{if(e.type==='unavailable-id'){clearTimeout(to);peer.destroy();hostRoom()}else setStatus('Error: '+e.type)});
+}
+function joinRoom(){
+  if(!needName())return;
+  const code=$('#code').value.trim().toUpperCase();if(!code)return;
+  setStatus('Conectando…');
+  peer=new Peer();
+  const to=setTimeout(()=>setStatus(SLOW),10000);
+  peer.on('open',id=>{
+    me=id;hostConn=peer.connect(PFX+code,{reliable:true});
+    hostConn.on('open',()=>{clearTimeout(to);enter(code);hostConn.send({t:'hello',name:prof.name,av:prof.avatar})});
+    hostConn.on('data',apply);
+    hostConn.on('close',()=>addMsg({t:'sys',text:'Se perdió la conexión con el DM.'}));
+  });
+  peer.on('error',e=>setStatus(e.type==='peer-unavailable'?'No encontré esa sala.':'Error: '+e.type));
+}
+$('#mk').onclick=hostRoom;$('#jn').onclick=joinRoom;
+const send=m=>{if(isHost)process(m,null);else if(hostConn&&hostConn.open)hostConn.send(m)};
+const bcast=m=>conns.forEach(c=>c.open&&c.send(m));
+const out=m=>{apply(m);bcast(m)};
+
+/* ---------- lado DM: valida y reparte ---------- */
+function process(m,c){
+  const who=c?c.peer:'host',t=m.t,H=who==='host',myTurn=S.order[S.turn]===who;
+  if(t==='hello'){
+    if(!c||S.players[who])return;
+    const p={n:clip(m.name,24)||'Jugador',av:(typeof m.av==='string'&&m.av.length<20000)?m.av:'',cn:'',src:''};
+    out({t:'join',id:who,p});out({t:'sys',text:p.n+' se unió'});return;
+  }
+  if(!H&&!S.players[who])return;
+  const p=S.players[who];
+  if(t==='sys'){if(H)out({t,text:clip(m.text,200)})}
+  else if(t==='chat'){
+    const text=clip(m.text,500);if(!text.trim())return;
+    out({t,id:rid(),name:H?prof.name+' (DM)':p.n,av:H?prof.avatar:p.av,text});
+  }
+  else if(t==='say'){
+    const text=clip(m.text,400);if(!text.trim()||!(H||myTurn))return;
+    out({t,id:rid(),name:H?'Narrador':pname(who),av:H?'':p.av,text});
+  }
+  else if(t==='roll'){
+    if(!DICE.includes(m.die))return;
+    const r=1+crypto.getRandomValues(new Uint32Array(1))[0]%m.die;
+    const n={t,id:rid(),name:H?'DM':p.n,av:H?prof.avatar:p.av,die:m.die,r};
+    if(H&&m.secret){n.secret=true;addMsg(n);toast(n)}else out(n);
+  }
+  else if(t==='pose'){
+    if(H||typeof m.src!=='string'||!m.src.startsWith('data:image/')||m.src.length>1200000)return;
+    out({t,id:who,cn:clip(m.cn,24),src:m.src});
+  }
+  else if(t==='turn'){if(S.order.length&&(H||myTurn))out({t,turn:(S.turn+1)%S.order.length})}
+  else if(t==='note'){const id=String(m.id);if((H||id===who)&&S.players[id])out({t,id,text:clip(m.text,2000)})}
+  else if(t==='bg'){if(H)out({t,src:(typeof m.src==='string'&&m.src.length<1500000)?m.src:''})}
+}
+
+/* ---------- todos: aplican cambios ---------- */
+const pushChat=m=>{S.chat.push(m);if(S.chat.length>80)S.chat.shift();addMsg(m)};
+function apply(m){
+  switch(m.t){
+    case 'state':S=m.s;renderAll();break;
+    case 'join':S.players[m.id]=m.p;if(!S.order.includes(m.id))S.order.push(m.id);renderPlayers();break;
+    case 'left':{const i=S.order.indexOf(m.id);if(i<0)break;S.order.splice(i,1);delete S.players[m.id];
+      if(i<S.turn)S.turn--;if(S.turn>=S.order.length)S.turn=0;renderPlayers();break}
+    case 'pose':{const p=S.players[m.id];if(p){p.src=m.src;p.cn=m.cn;renderStage();renderTurn();renderMy()}break}
+    case 'turn':S.turn=m.turn;renderStage();renderTurn();break;
+    case 'say':S.line=m;pushChat(m);renderVn();break;
+    case 'chat':case 'sys':pushChat(m);break;
+    case 'roll':pushChat(m);toast(m);break;
+    case 'note':S.notes[m.id]=m.text;{const ta=$('#pNotes textarea[data-id="'+m.id+'"]');if(ta&&document.activeElement!==ta)ta.value=m.text}break;
+    case 'bg':S.bg=m.src;renderBg();break;
+  }
+}
+
+/* ---------- render ---------- */
+function renderAll(){renderBg();renderVn();renderPlayers();$('#log').replaceChildren();S.chat.forEach(addMsg)}
+function renderPlayers(){renderStage();renderTurn();renderNotes();renderMy()}
+function renderBg(){stage.style.backgroundImage=S.bg?'url("'+S.bg+'")':'none'}
+function renderStage(){
+  stage.querySelectorAll('.slot').forEach(e=>e.remove());
+  const n=S.order.length;
+  S.order.forEach((id,i)=>{
+    const p=S.players[id];if(!p)return;
+    const d=el('div','slot');d.style.cssText='left:'+i*100/n+'%;width:'+100/n+'%';
+    d.append(el('span','num',String(i+1)));
+    if(p.src){const im=el('img','spr'+(i===S.turn?' on':''));im.src=p.src;im.alt=p.cn||p.n;d.append(im)}
+    stage.prepend(d);
+  });
+}
+function renderVn(){
+  $('#vn').classList.toggle('hide',!S.line);
+  if(S.line){$('#vnn').textContent=S.line.name;$('#vnt').textContent=S.line.text}
+}
+function renderTurn(){
+  const id=S.order[S.turn],mine=id===me,ok=isHost||mine;
+  $('#turntxt').textContent=id?'Turno de '+pname(id):'Esperando jugadores…';
+  $('#endturn').disabled=!(id&&ok);
+  $('#st').disabled=!ok;$('#sf button').disabled=!ok;
+  $('#st').placeholder=isHost?'Narra la escena…':mine?'Lo que dice o hace tu personaje…':'Espera tu turno';
+}
+function renderNotes(){
+  const box=$('#pNotes');box.replaceChildren();
+  if(!S.order.length)box.append(el('p','mute','Aún no hay jugadores.'));
+  S.order.forEach(id=>{
+    const c=el('div','card');c.append(el('h3','',pname(id)));
+    const ta=el('textarea');ta.dataset.id=id;ta.value=S.notes[id]||'';ta.readOnly=!(isHost||id===me);
+    ta.placeholder='Vida, condiciones, inventario…';
+    let tm;ta.oninput=()=>{clearTimeout(tm);tm=setTimeout(()=>send({t:'note',id,text:ta.value}),400)};
+    c.append(ta);box.append(c);
+  });
+}
+function renderMy(){
+  const box=$('#chars'),pz=$('#poses');box.replaceChildren();pz.replaceChildren();
+  chars.forEach(c=>{
+    const d=el('div','ch'+(cur&&cur.id===c.id?' on':''));const i=el('img');i.src=c.pngs[0];i.alt='';
+    d.append(i,el('span','',c.name));d.onclick=()=>pick(c);
+    const x=el('button','x','×');x.title='Borrar de mis guardados';
+    x.onclick=e=>{e.stopPropagation();if(confirm('¿Borrar a '+c.name+' de tus guardados?')){dbDel(c.id).catch(()=>{});chars=chars.filter(k=>k!==c);if(cur===c)cur=null;renderMy()}};
+    d.append(x);box.append(d);
+  });
+  if(cur){
+    pz.append(el('span','mute','Poses de '+cur.name+':'));
+    const now=(S.players[me]||{}).src;
+    cur.pngs.forEach(s=>{
+      const d=el('div','ch'+(s===now?' on':'')),i=el('img');i.src=s;i.alt='Pose';d.append(i);
+      d.style.width='64px';d.onclick=()=>send({t:'pose',cn:cur.name,src:s});pz.append(d);
+    });
+  }
+}
+function pick(c){cur=c;send({t:'pose',cn:c.name,src:c.pngs[0]});renderMy()}
+function toast(m){
+  const d=el('div','toast',m.name+' · d'+m.die+' → '+m.r+(m.secret?' (secreta)':''));
+  $('#toasts').append(d);setTimeout(()=>d.remove(),5000);
+}
+function addMsg(m){
+  const d=el('div','msg'+(m.t==='sys'?' sys':m.t==='say'?' say':''));
+  if(m.t==='sys')d.textContent=m.text;
+  else{
+    const i=el('img','pic');i.src=avSrc(m.name,m.av);i.alt='';
+    const b=el('div','body');b.append(el('b','',m.name));
+    if(m.t==='roll'){
+      const p=el('p','roll');p.append('d'+m.die+' ');
+      p.append(el('span','res'+(m.die===20&&m.r===20?' crit':m.die===20&&m.r===1?' fail':''),String(m.r)));
+      if(m.secret)p.append(' (secreta)');
+      b.append(p);
+    }else b.append(el('p','',m.text));
+    d.append(i,b);
+  }
+  const log=$('#log');log.append(d);log.scrollTop=log.scrollHeight;
+}
+
+/* ---------- controles ---------- */
+$('#sf').onsubmit=e=>{e.preventDefault();const v=$('#st').value.trim();if(v){send({t:'say',text:v});$('#st').value=''}};
+$('#endturn').onclick=()=>send({t:'turn'});
+$('#cfiles').onchange=async e=>{
+  const name=$('#cname').value.trim(),fs=[...e.target.files];e.target.value='';
+  if(!name){alert('Escribe primero el nombre del personaje.');return}
+  const pngs=[];for(const f of fs){try{pngs.push(await shrink(f,520,'image/png',1,true))}catch(x){}}
+  if(!pngs.length)return;
+  const c={id:rid(),name:clip(name,24),pngs};chars.push(c);dbPut(c).catch(()=>{});$('#cname').value='';pick(c);
+};
+$('#addpose').onchange=async e=>{
+  const fs=[...e.target.files];e.target.value='';
+  if(!cur){alert('Elige o crea primero un personaje.');return}
+  for(const f of fs){try{cur.pngs.push(await shrink(f,520,'image/png',1,true))}catch(x){}}
+  dbPut(cur).catch(()=>{});renderMy();
+};
+$('#bgfile').onchange=async e=>{
+  const f=e.target.files[0];if(!f)return;
+  try{send({t:'bg',src:await shrink(f,1280,'image/jpeg',.82)})}catch(x){}
+  e.target.value='';
+};
+$('#bgclear').onclick=()=>send({t:'bg',src:''});
+DICE.forEach(n=>{
+  const b=el('button','','d'+n);b.onclick=()=>send({t:'roll',die:n,secret:isHost&&$('#secret').checked});
+  $('#dice').append(b);
+});
+$('#cf').onsubmit=e=>{e.preventDefault();const v=$('#ct').value.trim();if(v){send({t:'chat',text:v});$('#ct').value=''}};
+function showTab(t){
+  $('#pChat').classList.toggle('hide',t!=='chat');$('#pNotes').classList.toggle('hide',t!=='notes');
+  $('#tChat').classList.toggle('on',t==='chat');$('#tNotes').classList.toggle('on',t==='notes');
+}
+$('#tChat').onclick=()=>showTab('chat');$('#tNotes').onclick=()=>showTab('notes');
+paintProf();
+</script>
+</body>
+</html>
