@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Moths &amp; Fishers v5.5</title>
+<title>Moths &amp; Fishers v5.5.1</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
 <style>
@@ -141,7 +141,7 @@ dialog h2{font-size:1.6rem}
 </head>
 <body>
 <section id="home" class="box scr">
-  <h1>Moths &amp; Fishers <small>v5.5</small></h1>
+  <h1>Moths &amp; Fishers <small>v5.5.1</small></h1>
   <button id="bDM" class="pri">Soy DM</button>
   <button id="bPL">Soy jugador</button>
   <p class="status mute" style="margin:0" role="status"></p>
@@ -198,7 +198,7 @@ dialog h2{font-size:1.6rem}
 
 <dialog id="dlg">
   <div id="vMain">
-    <h2>Moths and Fishers v5.5</h2>
+    <h2>Moths and Fishers v5.5.1</h2>
     <p style="margin:0">Jugadores activos: <b id="actn"></b> · Código: <b id="codeshow"></b></p>
     <div class="menu">
       <button id="copycode">Copiar código</button>
@@ -249,6 +249,11 @@ const clip=(s,n)=>String(s==null?'':s).slice(0,n);
 const rid=()=>Math.random().toString(36).slice(2,10);
 const rnd=()=>crypto.getRandomValues(new Uint32Array(1))[0];
 const okImg=(s,n)=>typeof s==='string'&&s.startsWith('data:image/')&&s.length<n;
+/* Si la conexión directa falla (VPN, datos móviles, redes restrictivas), pega aquí tus servidores TURN.
+   Ejemplo: const TURN=[{urls:'turn:SERVIDOR:443',username:'USUARIO',credential:'CLAVE'}]; */
+const TURN=[];
+const PEER_OPTS={config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'}].concat(TURN)}};
+const NOP2P='El servidor respondió, pero no se pudo abrir la conexión directa con el DM. Casi siempre es una VPN o una red que bloquea conexiones directas (datos móviles, escuela, trabajo). Prueba sin VPN en ambos dispositivos o configura un servidor TURN.';
 const PFX='dndvn-',MAXP=4,MAXIMG=4300000,GIFMAX=3*1024*1024,LIFE=10*60*1000,LIFE_ACT=30*60*1000;
 const PH=['Estable','Herido','Fatal','Moribundo','Muerto'],MS=['Estable','Afligido','Decaído','…'];
 const CHIP={Estable:'g',Herido:'a',Fatal:'r',Moribundo:'d',Afligido:'a','Decaído':'r','…':'d'};
@@ -292,11 +297,13 @@ const clearSess=()=>{try{localStorage.removeItem('sess')}catch(e){}};
 const lifeOf=m=>m.t==='act'?LIFE_ACT:LIFE;
 
 /* ---------- guardado local (IndexedDB) ---------- */
-const idb=new Promise((ok,no)=>{
+const idbOpen=new Promise((ok,no)=>{
   const r=indexedDB.open('mesa',2);
   r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('chars'))d.createObjectStore('chars',{keyPath:'id'});if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv',{keyPath:'k'})};
   r.onsuccess=()=>ok(r.result);r.onerror=no;
 });
+const idb=Promise.race([idbOpen,new Promise((_,no)=>setTimeout(()=>no(new Error('idb')),4000))]);
+idb.catch(()=>{});
 const tx=(st,m,f)=>idb.then(d=>new Promise((ok,no)=>{const r=f(d.transaction(st,m).objectStore(st));r.onsuccess=()=>ok(r.result);r.onerror=no}));
 const dbAll=()=>tx('chars','readonly',s=>s.getAll()),dbPut=c=>tx('chars','readwrite',s=>s.put(c)),dbDel=id=>tx('chars','readwrite',s=>s.delete(id));
 const kvGet=k=>tx('kv','readonly',s=>s.get(k)),kvSet=(k,v)=>tx('kv','readwrite',s=>s.put({k,v}));
@@ -379,7 +386,7 @@ async function upsertChar(){
   if(!draft.id)draft.id=rid();
   const c={...draft},i=chars.findIndex(k=>k.id===c.id);
   if(i<0)chars.push(c);else chars[i]=c;
-  try{await dbPut(c)}catch(e){}
+  try{await Promise.race([dbPut(c),new Promise(r=>setTimeout(r,1500))])}catch(e){}
   renderSaved();
 }
 const charMsg=()=>({name:draft.name,av:draft.av,bio:draft.bio,align:draft.align,arch:draft.arch,rest:draft.rest,talk:draft.talk,fall:draft.fall,moral:draft.moral,key:prof.key});
@@ -421,10 +428,13 @@ function hostRoom(codeArg,auto){
   isHost=true;me='host';
   const code=codeArg||Math.random().toString(36).slice(2,6).toUpperCase();
   setStatus('Creando sala…');
-  peer=new Peer(PFX+code);
+  peer=new Peer(PFX+code,PEER_OPTS);
+  peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});
   const to=setTimeout(()=>{if(!auto)setStatus(SLOW)},10000);
   peer.on('open',()=>{clearTimeout(to);enter(code);sysMsg(auto?'Sala restaurada.':'Sala creada. Código: '+code)});
   peer.on('connection',c=>{
+    addMsg({t:'sys',text:'Alguien está intentando conectarse…'});
+    c.on('iceStateChanged',st=>{if(st==='failed'||st==='disconnected')addMsg({t:'sys',text:'Falló la conexión directa con un jugador ('+st+'). Suele ser una VPN o una red restrictiva.'})});
     c.on('open',()=>{conns.push(c);c.send({t:'state',s:S,now:Date.now()})});
     c.on('data',m=>process(m,c));
     c.on('close',()=>{
@@ -452,18 +462,39 @@ async function joinRoom(codeArg,auto,tries=0){
     if(!code){setStatus('Escribe el código de la sala.');return}
     askNotif();draft.locked=true;await upsertChar();
   }
-  setStatus('Conectando…');
+  setStatus('Conectando con el servidor…');
   try{peer&&peer.destroy()}catch(e){}
-  peer=new Peer();
-  const retry=()=>{try{peer.destroy()}catch(e){}if(auto&&tries<6)setTimeout(()=>joinRoom(code,true,tries+1),3000);else if(auto)failAuto('No se pudo reconectar con la sala.');else setStatus(SLOW)};
-  const to=setTimeout(retry,10000);
+  peer=new Peer(undefined,PEER_OPTS);
+  let opened=false;
+  const giveUp=()=>{
+    if(opened)return;
+    try{peer.destroy()}catch(e){}
+    if(auto&&tries<6)setTimeout(()=>joinRoom(code,true,tries+1),3000);
+    else if(auto)failAuto('No se pudo reconectar con la sala.');
+    else setStatus(NOP2P);
+  };
+  const slow=setTimeout(()=>{if(!opened)setStatus('Sigue intentando… con VPN o datos móviles puede tardar hasta 40 segundos.')},10000);
+  const to=setTimeout(giveUp,45000);
+  const stop=()=>{clearTimeout(slow);clearTimeout(to)};
   peer.on('open',id=>{
-    me=id;hostConn=peer.connect(PFX+code,{reliable:true});
-    hostConn.on('open',()=>{clearTimeout(to);enter(code);hostConn.send({t:'hello',...charMsg()})});
+    me=id;setStatus('Servidor OK. Buscando la sala '+code+'…');
+    hostConn=peer.connect(PFX+code,{reliable:true});
+    hostConn.on('iceStateChanged',st=>{if(!opened)setStatus('Conexión directa con el DM: '+st+'…')});
+    hostConn.on('error',e=>{if(!opened)setStatus('Error de conexión: '+(e.type||e))});
+    hostConn.on('open',()=>{
+      opened=true;stop();enter(code);
+      hostConn.send({t:'hello',...charMsg(),rest:'',talk:'',fall:'',moral:''}); /* primero un saludo ligero */
+      setTimeout(()=>send({t:'char',...charMsg()}),50); /* y luego los sprites */
+    });
     hostConn.on('data',apply);
     hostConn.on('close',()=>{if(leaving)return;addMsg({t:'sys',text:'Se perdió la conexión con el DM. Reconectando…'});setTimeout(()=>joinRoom(code,true,0),2500)});
   });
-  peer.on('error',e=>{clearTimeout(to);if(auto)retry();else setStatus(e.type==='peer-unavailable'?'No encontré esa sala.':'Error: '+e.type)});
+  peer.on('disconnected',()=>{if(!opened){try{peer.reconnect()}catch(e){}}});
+  peer.on('error',e=>{
+    if(opened)return;stop();
+    if(auto){giveUp();return}
+    setStatus(e.type==='peer-unavailable'?'No encontré esa sala. Revisa el código y que el DM tenga la sala abierta.':(['network','server-error','socket-error','socket-closed'].includes(e.type)?SLOW:'Error: '+e.type));
+  });
 }
 $('#mk').onclick=()=>hostRoom();$('#jn').onclick=()=>joinRoom();
 const send=m=>{if(isHost)process(m,null);else if(hostConn&&hostConn.open)hostConn.send(m)};
@@ -651,11 +682,11 @@ function bell(){
 function notify(m){
   bell();
   if(document.hidden){
-    unread++;document.title='('+unread+') Moths & Fishers v5.5';
+    unread++;document.title='('+unread+') Moths & Fishers v5.5.1';
     try{if(window.Notification&&Notification.permission==='granted')new Notification(m.name,{body:m.t==='act'?m.label:m.text,silent:true})}catch(e){}
   }
 }
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){unread=0;document.title='Moths & Fishers v5.5'}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){unread=0;document.title='Moths & Fishers v5.5.1'}});
 
 /* ---------- render ---------- */
 function renderAll(){renderBg();renderNpc();renderPlayers();renderLog()}
@@ -921,7 +952,7 @@ function chatText(){
     if(m.t==='act')return '['+tm(m)+'] '+m.name+' — ACCIÓN: '+m.label+' | d20 ('+m.r+') '+(m.mod<0?'-':'+')+' '+Math.abs(m.mod)+' = '+m.total+(m.text?' | '+m.text:'')+q;
     return '['+tm(m)+'] '+m.name+(m.t==='narr'?' (narración)':'')+': '+m.text+q+e;
   };
-  return 'MOTHS & FISHERS v5.5 — CHAT PRINCIPAL\n\n'+S.chat.map(line).join('\n')+'\n\n--- CHAT FUERA DE ROL ---\n\n'+S.ooc.map(line).join('\n')+'\n';
+  return 'MOTHS & FISHERS v5.5.1 — CHAT PRINCIPAL\n\n'+S.chat.map(line).join('\n')+'\n\n--- CHAT FUERA DE ROL ---\n\n'+S.ooc.map(line).join('\n')+'\n';
 }
 function download(name,type,text){
   const a=document.createElement('a');
