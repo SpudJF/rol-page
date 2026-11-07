@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Moths &amp; Fishers v5.5.1</title>
+<title>Moths &amp; Fishers v5.6</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
 <style>
@@ -14,7 +14,7 @@ body{background:radial-gradient(ellipse at top,#16301f,var(--bg) 70%) fixed;colo
 button,input,select,textarea{font:inherit;color:inherit}
 button,.btn{display:inline-block;background:var(--panel2);border:1px solid var(--line);border-radius:6px;padding:.2rem .8rem;cursor:pointer}
 button:hover:not(:disabled),.btn:hover{border-color:var(--acc);background:#244a31}
-button:disabled{opacity:.4;cursor:default}
+button:disabled,select:disabled{opacity:.4;cursor:default}
 .pri{background:var(--acc);color:#1a0f05;border-color:var(--acc);font-weight:700}
 .pri:hover:not(:disabled){background:var(--gold)}
 input[type=text],select,textarea{background:#0a150e;border:1px solid var(--line);border-radius:6px;padding:.25rem .6rem;min-width:0;width:100%}
@@ -50,12 +50,11 @@ h1,h2{font-weight:500;font-variant:small-caps;letter-spacing:.05em;color:var(--g
 .s0{left:2cqh;top:2cqh}.s1{right:2cqh;top:2cqh}.s2{left:2cqh;bottom:2cqh}.s3{right:2cqh;bottom:2cqh}
 .fr{position:absolute;inset:0;border:1px solid var(--line);background:#00000066;overflow:hidden;transition:box-shadow .3s}
 .fr.on{box-shadow:0 0 0 2px var(--acc),0 0 20px var(--acc)}
+.fr.dead{background:#000}
 .fr img{width:100%;height:100%;object-fit:cover;object-position:50% 25%;display:block}
-.fx{position:absolute;inset:0;pointer-events:none}
 .slot.empty .fr{opacity:.4}
 .cap{background:#000b;padding:0 .6em;font-size:clamp(12px,2cqw,20px);font-style:italic;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fr .cap{position:absolute;left:0;right:0;bottom:0}
-.ok{position:absolute;top:2px;right:6px;color:#8ee89a;font-weight:700;font-size:clamp(14px,2.6cqw,24px);text-shadow:0 1px 3px #000}
 #npcs{position:absolute;z-index:2;left:calc(26cqh + 1cqw);right:calc(26cqh + 1cqw);top:5cqh;bottom:24cqh;pointer-events:none}
 .npc{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:.3em;transition:opacity 2s ease}
 .npc img{max-width:100%;min-height:0;flex:1 1 auto;object-fit:contain}
@@ -114,7 +113,7 @@ h1,h2{font-weight:500;font-variant:small-caps;letter-spacing:.05em;color:var(--g
 .esec{display:grid;gap:.25rem;justify-items:start}
 .esec b{font-size:.9rem;color:var(--mute);font-weight:500;font-variant:small-caps}
 .chip{padding:0 .8rem;border:1px solid #000;border-radius:999px;font-weight:700;color:#fff}
-.k-g{background:#6aa84f;color:#10200f}.k-a{background:#e0a03a;color:#1a1005}.k-r{background:#c4422b}.k-d{background:#8b1d1d}
+.k-g{background:#6aa84f;color:#10200f}.k-a{background:#e0a03a;color:#1a1005}.k-r{background:#c4422b}.k-d{background:#8b1d1d}.k-k{background:#000;border-color:var(--line)}
 
 dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:12px;width:min(640px,94vw);max-height:92vh;padding:1.2rem}
 dialog::backdrop{background:#000b}
@@ -141,16 +140,9 @@ dialog h2{font-size:1.6rem}
 </head>
 <body>
 <section id="home" class="box scr">
-  <h1>Moths &amp; Fishers <small>v5.5.1</small></h1>
+  <h1>Moths &amp; Fishers <small>v5.6</small></h1>
   <button id="bDM" class="pri">Soy DM</button>
   <button id="bPL">Soy jugador</button>
-  <p class="status mute" style="margin:0" role="status"></p>
-</section>
-
-<section id="resume" class="box scr hide">
-  <h2>Reconectando…</h2>
-  <p class="mute" style="margin:0">Volviendo a la sala en la que estabas.</p>
-  <button id="cancelres">Cancelar</button>
 </section>
 
 <section id="dmform" class="box scr hide">
@@ -180,10 +172,10 @@ dialog h2{font-size:1.6rem}
 
   <div id="board">
     <div id="bgbox"></div><div id="vig"></div>
-    <div class="slot s0"><div class="fr"><img alt="" class="hide"><div class="fx fxh"></div><div class="fx fxm"></div><span class="ok hide">✓</span><div class="cap hide"></div></div></div>
-    <div class="slot s1"><div class="fr"><img alt="" class="hide"><div class="fx fxh"></div><div class="fx fxm"></div><span class="ok hide">✓</span><div class="cap hide"></div></div></div>
-    <div class="slot s2"><div class="fr"><img alt="" class="hide"><div class="fx fxh"></div><div class="fx fxm"></div><span class="ok hide">✓</span><div class="cap hide"></div></div></div>
-    <div class="slot s3"><div class="fr"><img alt="" class="hide"><div class="fx fxh"></div><div class="fx fxm"></div><span class="ok hide">✓</span><div class="cap hide"></div></div></div>
+    <div class="slot s0"><div class="fr"><img alt="" class="hide"><div class="cap hide"></div></div></div>
+    <div class="slot s1"><div class="fr"><img alt="" class="hide"><div class="cap hide"></div></div></div>
+    <div class="slot s2"><div class="fr"><img alt="" class="hide"><div class="cap hide"></div></div></div>
+    <div class="slot s3"><div class="fr"><img alt="" class="hide"><div class="cap hide"></div></div></div>
     <div id="npcs"></div>
     <div id="narr"><b id="narrn"></b><p id="narrt"></p></div>
   </div>
@@ -198,7 +190,7 @@ dialog h2{font-size:1.6rem}
 
 <dialog id="dlg">
   <div id="vMain">
-    <h2>Moths and Fishers v5.5.1</h2>
+    <h2>Moths and Fishers v5.6</h2>
     <p style="margin:0">Jugadores activos: <b id="actn"></b> · Código: <b id="codeshow"></b></p>
     <div class="menu">
       <button id="copycode">Copiar código</button>
@@ -231,7 +223,6 @@ dialog h2{font-size:1.6rem}
       <div id="npclib"></div>
       <div class="row"><input id="npcname" type="text" placeholder="Nombre del NPC" maxlength="24"><label class="btn">Añadir NPC<input id="npcfile" type="file" accept="image/*" hidden></label><button id="npcclear">Quitar</button></div>
       <div class="row"><span>Nombre del narrador:</span><input id="narrname" type="text" maxlength="24" placeholder="Narrador"></div></div>
-    <div class="sep"><b>Turnos</b><button id="forceend" style="justify-self:start">Forzar fin del turno de jugadores</button></div>
     <div class="sep"><b>Jugadores</b><div id="kicklist" style="display:grid;gap:.4rem"></div></div>
     <div class="sep"><b>Partida</b>
       <span class="mute">Guardar descarga la partida (.json) y el texto visible del chat (.txt).</span>
@@ -254,10 +245,13 @@ const okImg=(s,n)=>typeof s==='string'&&s.startsWith('data:image/')&&s.length<n;
 const TURN=[];
 const PEER_OPTS={config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'}].concat(TURN)}};
 const NOP2P='El servidor respondió, pero no se pudo abrir la conexión directa con el DM. Casi siempre es una VPN o una red que bloquea conexiones directas (datos móviles, escuela, trabajo). Prueba sin VPN en ambos dispositivos o configura un servidor TURN.';
+const SLOW='No se pudo conectar con el servidor de PeerJS. Revisa tu internet, prueba sin VPN ni bloqueadores y vuelve a intentarlo.';
 const PFX='dndvn-',MAXP=4,MAXIMG=4300000,GIFMAX=3*1024*1024,LIFE=10*60*1000,LIFE_ACT=30*60*1000;
 const PH=['Estable','Herido','Fatal','Moribundo','Muerto'],MS=['Estable','Afligido','Decaído','…'];
-const CHIP={Estable:'g',Herido:'a',Fatal:'r',Moribundo:'d',Afligido:'a','Decaído':'r','…':'d'};
-const INT=[0,.17,.33,.5]; /* opacidad máxima de los efectos: nunca pasa de 50% */
+const CHIP={Estable:'g',Herido:'a',Fatal:'r',Moribundo:'d',Muerto:'k',Afligido:'a','Decaído':'r','…':'d'};
+/* modificadores por estado de salud (se suman al del arquetipo) */
+const HB={Estable:1,Herido:0,Fatal:-1,Moribundo:-2},MB={Estable:1,Afligido:0,'Decaído':-1,'…':-2};
+const hpMod=h=>(HB[h.b]||0)+(MB[h.m]||0);
 const ALIGN=['Legal bueno','Neutral bueno','Caótico bueno','Legal neutral','Neutral','Caótico neutral','Legal malvado','Neutral malvado','Caótico malvado'];
 const SL=[['rest','Neutral'],['talk','Hablando'],['fall','Moribundo'],['moral','Derrota moral']];
 
@@ -283,30 +277,32 @@ TREE.forEach(([g,items])=>items.forEach(([n,opts])=>opts.forEach(([o,k])=>{LABEL
 const fmtMod=n=>(n<0?'−':'+')+' '+Math.abs(n);
 
 /* ---------- estado global ---------- */
-let peer,isHost=false,conns=[],hostConn=null,me='',roomCode='',dmName='',view='main',leaving=false;
-let chars=[],npcLib=[],HP={},KEY={},SAVED={},myHp={b:'Estable',m:'Estable'},ctx=null,dirty=false,hostTries=0;
-const blankChar=()=>({id:'',name:'',av:'',bio:'',align:'',arch:'',locked:false,rest:'',talk:'',fall:'',moral:''});
+let peer,isHost=false,conns=[],hostConn=null,me='',roomCode='',dmName='',view='main';
+let chars=[],npcLib=[],HP={},SAVED={},myHp={b:'Estable',m:'Estable'},ctx=null;
+const blankChar=()=>({id:'',name:'',av:'',bio:'',align:'',arch:'',rest:'',talk:'',fall:'',moral:''});
 let draft=blankChar();
-let S={bg:'',npc:null,phase:'dm',round:0,players:{},chat:[],ooc:[]}; /* la partida empieza en turno del DM */
-let prof={narr:'',mute:false,dm:'',key:''};
+/* phase: 'dm' o 'players'; cur: jugador que tiene el turno. La partida empieza en turno del DM */
+let S={bg:'',npc:null,phase:'dm',cur:'',players:{},chat:[],ooc:[]};
+let prof={narr:'',mute:false,dm:''};
 try{Object.assign(prof,JSON.parse(localStorage.getItem('prof2')||'{}'))}catch(e){}
-if(!prof.key)prof.key=rid()+rid()+rid();
 const saveProf=()=>{try{localStorage.setItem('prof2',JSON.stringify(prof))}catch(e){}};
-saveProf();
-const clearSess=()=>{try{localStorage.removeItem('sess')}catch(e){}};
 const lifeOf=m=>m.t==='act'?LIFE_ACT:LIFE;
+const pname=id=>{const p=S.players[id];return p?p.n:''};
 
-/* ---------- guardado local (IndexedDB) ---------- */
-const idbOpen=new Promise((ok,no)=>{
-  const r=indexedDB.open('mesa',2);
-  r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('chars'))d.createObjectStore('chars',{keyPath:'id'});if(!d.objectStoreNames.contains('kv'))d.createObjectStore('kv',{keyPath:'k'})};
+/* ---------- turnos: jugadores por orden de espacio (1→4), luego el DM ---------- */
+const order=()=>Object.keys(S.players).filter(id=>!S.players[id].dead).sort((a,b)=>S.players[a].slot-S.players[b].slot);
+const nextAfter=id=>{const sl=S.players[id]?S.players[id].slot:-1;return order().find(x=>S.players[x].slot>sl)||''};
+
+/* ---------- guardado local (IndexedDB): personajes y NPCs ---------- */
+const idbOpen=new Promise((ok,no)=>{ /* sin número de versión: abre la base existente tal como esté */
+  const r=indexedDB.open('mesa');
+  r.onupgradeneeded=()=>{const d=r.result;if(!d.objectStoreNames.contains('chars'))d.createObjectStore('chars',{keyPath:'id'})};
   r.onsuccess=()=>ok(r.result);r.onerror=no;
 });
 const idb=Promise.race([idbOpen,new Promise((_,no)=>setTimeout(()=>no(new Error('idb')),4000))]);
 idb.catch(()=>{});
-const tx=(st,m,f)=>idb.then(d=>new Promise((ok,no)=>{const r=f(d.transaction(st,m).objectStore(st));r.onsuccess=()=>ok(r.result);r.onerror=no}));
-const dbAll=()=>tx('chars','readonly',s=>s.getAll()),dbPut=c=>tx('chars','readwrite',s=>s.put(c)),dbDel=id=>tx('chars','readwrite',s=>s.delete(id));
-const kvGet=k=>tx('kv','readonly',s=>s.get(k)),kvSet=(k,v)=>tx('kv','readwrite',s=>s.put({k,v}));
+const tx=(m,f)=>idb.then(d=>new Promise((ok,no)=>{const r=f(d.transaction('chars',m).objectStore('chars'));r.onsuccess=()=>ok(r.result);r.onerror=no}));
+const dbAll=()=>tx('readonly',s=>s.getAll()),dbPut=c=>tx('readwrite',s=>s.put(c)),dbDel=id=>tx('readwrite',s=>s.delete(id));
 
 /* ---------- utilidades de imagen y texto ---------- */
 function avSrc(name,av){
@@ -356,7 +352,7 @@ function renderEditor(root){
   al.value=draft.align;al.onchange=()=>{draft.align=al.value};
   const ar=el('select');
   [['','Arquetipo…']].concat(ARCH.map(a=>[a,a])).forEach(([v,t])=>{const o=el('option','',t);o.value=v;ar.append(o)});
-  ar.value=draft.arch;ar.disabled=!!draft.locked;ar.onchange=()=>{draft.arch=ar.value};
+  ar.value=draft.arch;ar.onchange=()=>{draft.arch=ar.value};
   const row=el('div','slots4');
   SL.forEach(([k,lab])=>{
     const d=el('div','sl');d.append(el('b','',lab));
@@ -368,8 +364,7 @@ function renderEditor(root){
     if(draft[k]){const x=el('button','','Quitar');x.onclick=()=>{draft[k]='';renderEditor(root)};d.append(x)}
     row.append(d);
   });
-  root.append(top,bio,al,ar,el('span','mute',draft.locked?'El arquetipo ya no se puede cambiar.':'Elige con cuidado: el arquetipo no se podrá cambiar después.'),
-    el('span','mute','Sprites (PNG o GIF, máx. 3 MB):'),row);
+  root.append(top,bio,al,ar,el('span','mute','Sprites (PNG o GIF, máx. 3 MB):'),row);
 }
 function renderSaved(){
   const box=$('#saved');box.replaceChildren();
@@ -389,92 +384,75 @@ async function upsertChar(){
   try{await Promise.race([dbPut(c),new Promise(r=>setTimeout(r,1500))])}catch(e){}
   renderSaved();
 }
-const charMsg=()=>({name:draft.name,av:draft.av,bio:draft.bio,align:draft.align,arch:draft.arch,rest:draft.rest,talk:draft.talk,fall:draft.fall,moral:draft.moral,key:prof.key});
+const charMsg=()=>({name:draft.name,av:draft.av,bio:draft.bio,align:draft.align,arch:draft.arch,rest:draft.rest,talk:draft.talk,fall:draft.fall,moral:draft.moral});
 function cleanChar(m){
   const g=s=>okImg(s,MAXIMG)?s:'';
-  return{n:clip(m.name,24).trim()||'Jugador',av:okImg(m.av,20000)?m.av:'',bio:clip(m.bio,600),align:ALIGN.includes(m.align)?m.align:'',rest:g(m.rest),talk:g(m.talk),fall:g(m.fall),moral:g(m.moral)};
+  const c={n:clip(m.name,24).trim()||'Jugador',av:okImg(m.av,20000)?m.av:'',bio:clip(m.bio,600),align:ALIGN.includes(m.align)?m.align:'',rest:g(m.rest),talk:g(m.talk),fall:g(m.fall),moral:g(m.moral)};
+  if(ARCH.includes(m.arch))c.arch=m.arch;
+  return c;
 }
 
 /* ---------- pantallas de entrada ---------- */
-const go=id=>['home','dmform','plform','resume'].forEach(s=>$('#'+s).classList.toggle('hide',s!==id));
+const go=id=>['home','dmform','plform'].forEach(s=>$('#'+s).classList.toggle('hide',s!==id));
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 $('#bDM').onclick=()=>{$('#dmname').value=prof.dm;go('dmform')};
 $('#bPL').onclick=()=>{renderEditor($('#plEditor'));renderSaved();go('plform')};
-$('#cancelres').onclick=()=>{clearSess();location.reload()};
 const setStatus=t=>document.querySelectorAll('.status').forEach(e=>e.textContent=t);
 window.addEventListener('error',e=>setStatus('Error en la página: '+e.message));
-const SLOW='No se pudo conectar con el servidor de PeerJS. Revisa tu internet, prueba sin VPN ni bloqueadores y vuelve a intentarlo.';
 const askNotif=()=>{try{if(window.Notification&&Notification.permission==='default')Notification.requestPermission()}catch(e){}};
-function failAuto(msg,to){clearSess();try{localStorage.setItem('notice',JSON.stringify({to:to||'home',msg}))}catch(e){}location.reload()}
+const bail=msg=>{alert(msg);location.reload()};
 
 /* ---------- conexión ---------- */
 function enter(code){
   roomCode=code;
-  try{localStorage.setItem('sess',JSON.stringify(isHost?{role:'dm',code,dmName}:{role:'pl',code,charId:draft.id}))}catch(e){}
-  ['home','dmform','plform','resume'].forEach(s=>$('#'+s).classList.add('hide'));$('#app').classList.remove('hide');
+  ['home','dmform','plform'].forEach(s=>$('#'+s).classList.add('hide'));$('#app').classList.remove('hide');
   document.querySelectorAll('.dmonly').forEach(e=>e.classList.toggle('hide',!isHost));
   document.querySelectorAll('.plonly').forEach(e=>e.classList.toggle('hide',isHost));
   $('#bar').classList.toggle('dm',isHost);
   $('#narrname').value=prof.narr;$('#codeshow').textContent=code;
   renderAll();
 }
-function hostRoom(codeArg,auto){
-  if(!auto){
-    dmName=$('#dmname').value.trim();
-    if(typeof Peer==='undefined'){setStatus('No se pudo cargar PeerJS. Revisa tu conexión.');return}
-    if(!dmName){setStatus('Escribe tu nombre para continuar.');return}
-    prof.dm=dmName;saveProf();askNotif();
-  }
+function hostRoom(){
+  dmName=$('#dmname').value.trim();
+  if(typeof Peer==='undefined'){setStatus('No se pudo cargar PeerJS. Revisa tu conexión.');return}
+  if(!dmName){setStatus('Escribe tu nombre para continuar.');return}
+  prof.dm=dmName;saveProf();askNotif();
   isHost=true;me='host';
-  const code=codeArg||Math.random().toString(36).slice(2,6).toUpperCase();
+  const code=Math.random().toString(36).slice(2,6).toUpperCase();
   setStatus('Creando sala…');
   peer=new Peer(PFX+code,PEER_OPTS);
   peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});
-  const to=setTimeout(()=>{if(!auto)setStatus(SLOW)},10000);
-  peer.on('open',()=>{clearTimeout(to);enter(code);sysMsg(auto?'Sala restaurada.':'Sala creada. Código: '+code)});
+  const to=setTimeout(()=>setStatus(SLOW),12000);
+  peer.on('open',()=>{clearTimeout(to);enter(code);sysMsg('Sala creada. Código: '+code)});
   peer.on('connection',c=>{
     addMsg({t:'sys',text:'Alguien está intentando conectarse…'});
     c.on('iceStateChanged',st=>{if(st==='failed'||st==='disconnected')addMsg({t:'sys',text:'Falló la conexión directa con un jugador ('+st+'). Suele ser una VPN o una red restrictiva.'})});
     c.on('open',()=>{conns.push(c);c.send({t:'state',s:S,now:Date.now()})});
     c.on('data',m=>process(m,c));
     c.on('close',()=>{
-      conns=conns.filter(x=>x!==c);if(c._gone)return;
-      const p=S.players[c.peer];
-      if(p){const h=HP[c.peer]||{b:'Estable',m:'Estable'};SAVED[p.n]={key:KEY[c.peer],b:h.b,m:h.m,arch:p.arch,done:p.done,round:S.round};removePlayer(c.peer);sysMsg(p.n+' salió')}
+      conns=conns.filter(x=>x!==c);const p=S.players[c.peer];
+      if(p){const h=HP[c.peer]||{b:'Estable',m:'Estable'};SAVED[p.n]={b:h.b,m:h.m};removePlayer(c.peer);sysMsg(p.n+' salió')}
     });
   });
   peer.on('error',e=>{
     clearTimeout(to);
-    if(e.type==='unavailable-id'){
-      peer.destroy();
-      if(auto){if(++hostTries<10)setTimeout(()=>hostRoom(code,true),2000);else failAuto('No se pudo restaurar la sala.')}
-      else hostRoom();
-    }else if(auto)failAuto('No se pudo restaurar la sala.');
-    else setStatus('Error: '+e.type);
+    if(e.type==='unavailable-id'){peer.destroy();hostRoom()}else setStatus('Error: '+e.type);
   });
 }
-async function joinRoom(codeArg,auto,tries=0){
-  const code=(codeArg||$('#code').value).trim().toUpperCase();
-  if(typeof Peer==='undefined'){if(auto)failAuto('No se pudo cargar PeerJS.');else setStatus('No se pudo cargar PeerJS. Revisa tu conexión.');return}
-  if(!auto){
-    if(!draft.name.trim()){setStatus('Escribe el nombre de tu personaje.');return}
-    if(!ARCH.includes(draft.arch)){setStatus('Elige el arquetipo de tu personaje.');return}
-    if(!code){setStatus('Escribe el código de la sala.');return}
-    askNotif();draft.locked=true;await upsertChar();
-  }
+function joinRoom(){
+  const code=$('#code').value.trim().toUpperCase();
+  if(typeof Peer==='undefined'){setStatus('No se pudo cargar PeerJS. Revisa tu conexión.');return}
+  if(!draft.name.trim()){setStatus('Escribe el nombre de tu personaje.');return}
+  if(!ARCH.includes(draft.arch)){setStatus('Elige el arquetipo de tu personaje.');return}
+  if(!code){setStatus('Escribe el código de la sala.');return}
+  askNotif();
+  upsertChar(); /* se guarda en segundo plano: nunca bloquea la entrada */
   setStatus('Conectando con el servidor…');
   try{peer&&peer.destroy()}catch(e){}
   peer=new Peer(undefined,PEER_OPTS);
   let opened=false;
-  const giveUp=()=>{
-    if(opened)return;
-    try{peer.destroy()}catch(e){}
-    if(auto&&tries<6)setTimeout(()=>joinRoom(code,true,tries+1),3000);
-    else if(auto)failAuto('No se pudo reconectar con la sala.');
-    else setStatus(NOP2P);
-  };
   const slow=setTimeout(()=>{if(!opened)setStatus('Sigue intentando… con VPN o datos móviles puede tardar hasta 40 segundos.')},10000);
-  const to=setTimeout(giveUp,45000);
+  const to=setTimeout(()=>{if(!opened){try{peer.destroy()}catch(e){}setStatus(NOP2P)}},45000);
   const stop=()=>{clearTimeout(slow);clearTimeout(to)};
   peer.on('open',id=>{
     me=id;setStatus('Servidor OK. Buscando la sala '+code+'…');
@@ -487,69 +465,45 @@ async function joinRoom(codeArg,auto,tries=0){
       setTimeout(()=>send({t:'char',...charMsg()}),50); /* y luego los sprites */
     });
     hostConn.on('data',apply);
-    hostConn.on('close',()=>{if(leaving)return;addMsg({t:'sys',text:'Se perdió la conexión con el DM. Reconectando…'});setTimeout(()=>joinRoom(code,true,0),2500)});
+    hostConn.on('close',()=>addMsg({t:'sys',text:'Se perdió la conexión con el DM. Para volver, recarga la página y entra de nuevo.'}));
   });
   peer.on('disconnected',()=>{if(!opened){try{peer.reconnect()}catch(e){}}});
   peer.on('error',e=>{
     if(opened)return;stop();
-    if(auto){giveUp();return}
     setStatus(e.type==='peer-unavailable'?'No encontré esa sala. Revisa el código y que el DM tenga la sala abierta.':(['network','server-error','socket-error','socket-closed'].includes(e.type)?SLOW:'Error: '+e.type));
   });
 }
-$('#mk').onclick=()=>hostRoom();$('#jn').onclick=()=>joinRoom();
+$('#mk').onclick=hostRoom;$('#jn').onclick=joinRoom;
 const send=m=>{if(isHost)process(m,null);else if(hostConn&&hostConn.open)hostConn.send(m)};
 const bcast=m=>conns.forEach(c=>c.open&&c.send(m));
-const out=m=>{apply(m);bcast(m);dirty=true};
+const out=m=>{apply(m);bcast(m)};
 const sysMsg=text=>out({t:'sys',id:rid(),ts:Date.now(),from:'host',text:clip(text,200)});
 
 /* ---------- lado DM: reglas y validación ---------- */
-function checkAdvance(){ /* cuando todos los jugadores terminan, pasa el turno al DM */
-  if(S.phase!=='players')return;
-  const ps=Object.values(S.players);
-  if(!ps.length||ps.every(p=>p.done))setPhase('dm');
-}
-function setPhase(ph){
-  out({t:'phase',phase:ph,round:ph==='players'?S.round+1:S.round});
-  sysMsg(ph==='players'?'Turno de los jugadores':'Turno del DM');
-}
+function setTurn(phase,cur){out({t:'turn',phase,cur:cur||''})}
+function advance(){const nx=nextAfter(S.cur);if(nx)setTurn('players',nx);else setTurn('dm','')} /* tras el último jugador, turno del DM */
+function startPlayers(){const o=order();if(o.length)setTurn('players',o[0])}
+function fixEmpty(){if(S.phase==='players'&&!order().length)setTurn('dm','')}
 function removePlayer(id){
-  const cc=conns.find(x=>x.peer===id);if(cc)cc._gone=true;
-  out({t:'left',id});delete HP[id];delete KEY[id];checkAdvance();return cc;
+  const was=S.phase==='players'&&S.cur===id,nx=was?nextAfter(id):'';
+  out({t:'left',id});delete HP[id];
+  if(was)setTurn(nx?'players':'dm',nx);else fixEmpty();
 }
 function setHp(id,b,m){
   HP[id]={b,m};const cc=conns.find(x=>x.peer===id);
   if(cc&&cc.open)cc.send({t:'hp',b,m});
-  out({t:'flags',id,hi:Math.min(PH.indexOf(b),3),mi:MS.indexOf(m)});
+  const dead=b==='Muerto';
+  out({t:'flags',id,hi:Math.min(PH.indexOf(b),3),mi:MS.indexOf(m),dead});
+  if(S.phase==='players'&&S.cur===id&&dead)advance();else fixEmpty();
   renderEstado();
 }
-function killPlayer(id){ /* al morir, el jugador vuelve a la pantalla de inicio para crear otro personaje */
-  const p=S.players[id];if(!p)return;const n=p.n;delete SAVED[n];
-  const cc=removePlayer(id);
-  if(cc){cc.send({t:'died'});setTimeout(()=>cc.close(),400)}
-  sysMsg(n+' ha muerto');
-}
 function hello(m,c){
-  if(!c)return;
-  const key=clip(m.key,40),cc=cleanChar(m);
-  const old=Object.keys(S.players).find(id=>S.players[id].n===cc.n);
-  let carry=null;
-  if(old){
-    if(KEY[old]!==key){c.send({t:'taken'});setTimeout(()=>c.close(),300);return}
-    const op=S.players[old],oc=conns.find(x=>x.peer===old);
-    carry={hp:HP[old],arch:op.arch,done:op.done,slot:op.slot};
-    if(oc){oc._gone=true;setTimeout(()=>oc.close(),200)}
-    out({t:'left',id:old});delete HP[old];delete KEY[old];
-  }else{
-    const sv=SAVED[cc.n];
-    if(sv&&sv.key===key)carry={hp:{b:sv.b,m:sv.m},arch:sv.arch,done:sv.round===S.round?sv.done:S.phase==='players'};
-  }
-  const slot=carry&&carry.slot!=null?carry.slot:[0,1,2,3].find(i=>!Object.values(S.players).some(q=>q.slot===i));
+  if(!c||S.players[c.peer])return;
+  const cc=cleanChar(m),slot=[0,1,2,3].find(i=>!Object.values(S.players).some(q=>q.slot===i));
   if(slot===undefined){c.send({t:'full'});setTimeout(()=>c.close(),400);return}
-  const arch=carry&&ARCH.includes(carry.arch)?carry.arch:(ARCH.includes(m.arch)?m.arch:'Civil');
-  const h=carry&&carry.hp&&PH.includes(carry.hp.b)&&MS.includes(carry.hp.m)?carry.hp:{b:'Estable',m:'Estable'};
-  const done=carry?!!carry.done:S.phase==='players'; /* quien entra a media ronda espera a la siguiente */
-  const p={...cc,arch,slot,done,hi:Math.min(PH.indexOf(h.b),3),mi:MS.indexOf(h.m)};
-  HP[c.peer]=h;KEY[c.peer]=key;
+  const sv=SAVED[cc.n],h=sv&&PH.includes(sv.b)&&MS.includes(sv.m)?{b:sv.b,m:sv.m}:{b:'Estable',m:'Estable'};
+  const p={...cc,arch:cc.arch||'Civil',slot,hi:Math.min(PH.indexOf(h.b),3),mi:MS.indexOf(h.m),dead:h.b==='Muerto'};
+  HP[c.peer]=h;
   out({t:'join',id:c.peer,p});c.send({t:'hp',b:h.b,m:h.m});sysMsg(p.n+' se unió');
 }
 const cleanRe=r=>r&&typeof r==='object'?{id:clip(r.id,20),name:clip(r.name,40),text:clip(r.text,90)}:null;
@@ -558,7 +512,7 @@ function process(m,c){
   if(t==='hello')return hello(m,c);
   if(!H&&!S.players[who])return;
   const p=S.players[who];
-  const canP=!H&&S.phase==='players'&&!p.done; /* jugador: solo puede escribir/actuar si aún no terminó su turno */
+  const canP=!H&&S.phase==='players'&&S.cur===who&&!p.dead; /* jugador: solo en su turno */
   const base=()=>({id:rid(),ts:Date.now(),from:who,name:H?dmName+' (DM)':p.n,av:H?'':p.av,dm:H});
   switch(t){
     case 'chat':{const text=clip(m.text,500);if(text.trim()&&(H?S.phase==='players':canP))out({t,...base(),text,re:cleanRe(m.re)});break}
@@ -567,15 +521,14 @@ function process(m,c){
     case 'act':{
       if(!canP||!LABEL[m.k])break;
       const text=clip(m.text,200);if(m.k==='luck'&&!text.trim())break;
-      const mod=modOf(p.arch,m.k),r=1+rnd()%20;
+      const mod=modOf(p.arch,m.k)+hpMod(HP[who]||{b:'Estable',m:'Estable'}),r=1+rnd()%20; /* arquetipo + salud, en un solo número */
       out({t,...base(),label:LABEL[m.k],r,mod,total:r+mod,text});
-      out({t:'done',id:who});checkAdvance();break;
+      advance();break; /* la acción termina el turno */
     }
     case 'endturn':
-      if(canP){out({t:'done',id:who});checkAdvance()}
-      else if(H&&S.phase==='dm'&&Object.keys(S.players).length)setPhase('players');
+      if(canP)advance();
+      else if(H){if(S.phase==='dm')startPlayers();else advance()} /* el DM puede forzar el fin del turno actual */
       break;
-    case 'forceend':if(H&&S.phase==='players')setPhase('dm');break;
     case 'edit':{
       const k=S.chat.some(x=>x.id===m.id)?'chat':S.ooc.some(x=>x.id===m.id)?'ooc':null;
       const msg=k&&S[k].find(x=>x.id===m.id);
@@ -590,53 +543,40 @@ function process(m,c){
     case 'npc':
       if(H)out({t,npc:m.npc&&okImg(m.npc.src,MAXIMG)?{id:clip(m.npc.id,20),src:m.npc.src,name:clip(m.npc.name,24)}:null});break;
     case 'kick':{
-      if(!H)break;const q=S.players[m.id];if(!q)break;const n=q.n,cc=removePlayer(m.id);
-      if(cc){cc.send({t:'kicked'});setTimeout(()=>cc.close(),300)}sysMsg(n+' fue expulsado');break;
+      if(!H)break;const q=S.players[m.id];if(!q)break;
+      const n=q.n,cc=conns.find(x=>x.peer===m.id);
+      if(cc){cc.send({t:'kicked'});setTimeout(()=>cc.close(),300)} /* el cierre quita al jugador */
+      else{removePlayer(m.id);sysMsg(n+' fue expulsado')}
+      break;
     }
     case 'hpset':{
-      if(!H)break;const id=String(m.id),h=HP[id];if(!S.players[id]||!h)break;
-      const b=PH.includes(m.b)?m.b:h.b,mm=MS.includes(m.m)?m.m:h.m;
-      if(b==='Muerto')killPlayer(id);else setHp(id,b,mm);break;
+      const id=String(m.id),h=HP[id];if(!S.players[id]||!h)break;
+      /* el DM solo cambia estados en su turno; un jugador muerto sí puede cambiar el suyo */
+      if(!((H&&S.phase==='dm')||(!H&&id===who&&h.b==='Muerto')))break;
+      setHp(id,PH.includes(m.b)?m.b:h.b,MS.includes(m.m)?m.m:h.m);break;
     }
   }
 }
 
 /* ---------- todos: aplican cambios ---------- */
-const TK={};
-function triggerTalk(id){ /* sprite "hablando": 2 s después del mensaje, durante 2 s */
-  const o=TK[id]||(TK[id]={});clearTimeout(o.a);clearTimeout(o.b);o.on=false;
-  o.a=setTimeout(()=>{o.on=true;renderSlots();o.b=setTimeout(()=>{o.on=false;renderSlots()},2000)},2000);
-}
 function pushChat(m,k){
   m._at=Date.now();S[k].push(m);
   if(S[k].length>100){const i=S[k].findIndex(x=>x.t!=='act');if(i>=0)S[k].splice(i,1)} /* las acciones no cuentan para el límite */
   if(view===(k==='chat'?'main':'ooc'))addMsg(m);else $('#offbtn').classList.add('dot');
-  if(k==='chat'){
-    if(m.t!=='sys'&&m.from!==me)notify(m);
-    if((m.t==='chat'||m.t==='act')&&S.players[m.from])triggerTalk(m.from);
-  }
+  if(m.t!=='sys'&&m.from!==me)notify(m,k==='ooc');
 }
 function apply(m){
   switch(m.t){
     case 'state':{S=m.s;const off=Date.now()-m.now;['chat','ooc'].forEach(k=>S[k].forEach(x=>{x._at=x.ts?x.ts+off:Date.now()}));renderAll();break}
-    case 'full':leaving=true;failAuto('La sala está llena (máximo 4 jugadores sin contar al DM).');break;
-    case 'taken':leaving=true;failAuto('Ya hay alguien con ese nombre en la sala.','plform');break;
-    case 'kicked':leaving=true;failAuto('El DM te ha expulsado de la sala.');break;
-    case 'died':{
-      leaving=true;
-      if(draft.id){dbDel(draft.id).catch(()=>{});chars=chars.filter(c=>c.id!==draft.id)}
-      failAuto('Tu personaje ha muerto. Crea uno nuevo para volver a la sala.','plform');break;
-    }
+    case 'full':bail('La sala está llena (máximo 4 jugadores sin contar al DM).');break;
+    case 'kicked':bail('El DM te ha expulsado de la sala.');break;
     case 'hp':myHp={b:m.b,m:m.m};renderEstado();break;
     case 'join':S.players[m.id]=m.p;renderPlayers();break;
-    case 'left':delete S.players[m.id];delete TK[m.id];renderPlayers();break;
+    case 'left':delete S.players[m.id];renderPlayers();break;
     case 'char':{const p=S.players[m.id];if(p){Object.assign(p,m.c);renderPlayers()}break}
-    case 'flags':{const p=S.players[m.id];if(p){p.hi=m.hi;p.mi=m.mi;renderSlots();renderLists()}break}
-    case 'done':{const p=S.players[m.id];if(p){p.done=true;renderSlots();renderLocks()}break}
-    case 'phase':
-      S.phase=m.phase;S.round=m.round;
-      if(m.phase==='players')Object.values(S.players).forEach(p=>{p.done=false});
-      renderSlots();renderLocks();if(!$('#actpop').classList.contains('hide'))renderAct();break;
+    case 'flags':{const p=S.players[m.id];if(p){p.hi=m.hi;p.mi=m.mi;p.dead=m.dead;renderPlayers()}break}
+    case 'turn':
+      S.phase=m.phase;S.cur=m.cur;renderSlots();renderLocks();if(!$('#actpop').classList.contains('hide'))renderAct();renderEstado();break;
     case 'npc':S.npc=m.npc;renderNpc();if(isHost)renderDM();break;
     case 'bg':S.bg=m.src;renderBg();break;
     case 'narr':pushChat(m,'chat');narrate(m);break;
@@ -666,27 +606,29 @@ setInterval(()=>{
   });
 },5000);
 
-/* ---------- notificaciones ---------- */
+/* ---------- notificaciones: campana (chat principal) y campanilla corta (chat Off) ---------- */
 let AC,unread=0;
-function bell(){
+function tones(list){
   if(prof.mute)return;
   try{
-    AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume();const t=AC.currentTime;
-    [[660,.16],[1820,.08],[3560,.04]].forEach(([f,g])=>{
-      const o=AC.createOscillator(),v=AC.createGain();o.type='sine';o.frequency.value=f;
-      v.gain.setValueAtTime(g,t);v.gain.exponentialRampToValueAtTime(.0001,t+.5);
-      o.connect(v);v.connect(AC.destination);o.start(t);o.stop(t+.55);
+    AC=AC||new(window.AudioContext||window.webkitAudioContext)();AC.resume();const t0=AC.currentTime;
+    list.forEach(([f,g,at,len])=>{
+      const o=AC.createOscillator(),v=AC.createGain(),t=t0+at;o.type='sine';o.frequency.value=f;
+      v.gain.setValueAtTime(g,t);v.gain.exponentialRampToValueAtTime(.0001,t+len);
+      o.connect(v);v.connect(AC.destination);o.start(t);o.stop(t+len+.05);
     });
   }catch(e){}
 }
-function notify(m){
-  bell();
+const bell=()=>tones([[660,.16,0,.5],[1820,.08,0,.45],[3560,.04,0,.35]]); /* campana antigua, ~0,5 s */
+const chime=()=>tones([[1175,.12,0,.2],[1568,.1,.1,.22]]); /* chat Off: dos notas suaves, ~0,3 s */
+function notify(m,ooc){
+  if(ooc)chime();else bell();
   if(document.hidden){
-    unread++;document.title='('+unread+') Moths & Fishers v5.5.1';
-    try{if(window.Notification&&Notification.permission==='granted')new Notification(m.name,{body:m.t==='act'?m.label:m.text,silent:true})}catch(e){}
+    unread++;document.title='('+unread+') Moths & Fishers v5.6';
+    try{if(window.Notification&&Notification.permission==='granted')new Notification(m.name+(ooc?' (Off)':''),{body:m.t==='act'?m.label:m.text,silent:true})}catch(e){}
   }
 }
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){unread=0;document.title='Moths & Fishers v5.5.1'}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){unread=0;document.title='Moths & Fishers v5.6'}});
 
 /* ---------- render ---------- */
 function renderAll(){renderBg();renderNpc();renderPlayers();renderLog()}
@@ -705,35 +647,32 @@ function renderNpc(){ /* un solo NPC a la vez, con fundido cruzado de 2 s */
   if(S.npc.name)d.append(el('div','cap',S.npc.name));
   d.style.opacity=0;box.append(d);void d.offsetWidth;d.style.opacity=1;
 }
-/* sprite automático: moribundo > derrota moral ("…") > hablando > neutral */
+/* sprite automático: moribundo > derrota moral ("…") > hablando (en su turno) > neutral */
 const spriteFor=(p,talk)=>(p[p.hi===3?'fall':p.mi===3?'moral':talk?'talk':'rest']||p.rest||p.av||'');
 function renderSlots(){
   document.querySelectorAll('.slot').forEach((d,i)=>{
-    const id=Object.keys(S.players).find(k=>S.players[k].slot===i),p=S.players[id],talk=!!(id&&TK[id]&&TK[id].on);
-    d.classList.toggle('empty',!p);d.querySelector('.fr').classList.toggle('on',talk);
-    setImg(d.querySelector('img'),p?spriteFor(p,talk):'');
-    const cap=d.querySelector('.cap');cap.textContent=p?p.n:'';cap.classList.toggle('hide',!p);
-    d.querySelector('.ok').classList.toggle('hide',!(p&&p.done&&S.phase==='players'));
-    d.querySelector('.fxh').style.background=p&&p.hi?'rgba(190,20,20,'+INT[p.hi]+')':'none'; /* salud: tinte rojo */
-    d.querySelector('.fxm').style.background=p&&p.mi?'radial-gradient(ellipse at center,rgba(0,0,0,0) 28%,rgba(0,0,0,'+INT[p.mi]+') 100%)':'none'; /* mente: viñeta negra */
+    const id=Object.keys(S.players).find(k=>S.players[k].slot===i),p=S.players[id],dead=!!p&&p.dead;
+    const cur=!!p&&!dead&&S.phase==='players'&&S.cur===id,fr=d.querySelector('.fr');
+    d.classList.toggle('empty',!p);fr.classList.toggle('dead',dead);fr.classList.toggle('on',cur);
+    setImg(d.querySelector('img'),p&&!dead?spriteFor(p,cur):'');
+    const cap=d.querySelector('.cap');cap.textContent=p&&!dead?p.n:'';cap.classList.toggle('hide',!p||dead);
   });
 }
 function renderLocks(){
   const p=S.players[me],ooc=view==='ooc',ph=S.phase;
-  const canMain=isHost||(!!p&&ph==='players'&&!p.done),ok=ooc||canMain,hasP=Object.keys(S.players).length>0;
-  const b1=$('#b1'),b2=$('#b2');
+  const myTurn=!!p&&ph==='players'&&S.cur===me&&!p.dead;
+  const canMain=isHost||myTurn,ok=ooc||canMain,b1=$('#b1'),b2=$('#b2');
   $('#ct').disabled=!ok;$('#log').classList.toggle('w',ok);
   b2.classList.toggle('hide',ooc);
   if(ooc){b1.textContent='Enviar';b1.disabled=false}
   else if(isHost){
-    if(ph==='dm'){b1.textContent='Terminar turno';b1.disabled=!hasP;b2.textContent='Narrar';b2.disabled=false}
-    else{b1.textContent='Comentar';b1.disabled=false;b2.textContent='Narrar';b2.disabled=true}
-  }else{b1.textContent='Comentar';b1.disabled=!canMain;b2.textContent='Terminar turno';b2.disabled=!canMain}
-  $('#actbtn').disabled=!canMain||isHost;
-  $('#ct').placeholder=ooc?'chat fuera de rol…':isHost?(ph==='dm'?'narra la escena…':'comenta mientras juegan…'):canMain?'escribe aquí…':(p&&p.done?'ya terminaste tu turno…':'turno del DM…');
+    if(ph==='dm'){b1.textContent='Terminar turno';b1.disabled=!order().length;b2.textContent='Narrar';b2.disabled=false}
+    else{b1.textContent='Comentar';b1.disabled=false;b2.textContent='Forzar turno';b2.disabled=false}
+  }else{b1.textContent='Comentar';b1.disabled=!myTurn;b2.textContent='Terminar turno';b2.disabled=!myTurn}
+  $('#actbtn').disabled=!myTurn;
+  $('#ct').placeholder=ooc?'chat fuera de rol…':isHost?(ph==='dm'?'narra la escena…':'comenta mientras juegan…'):(p&&p.dead?'estás muerto: solo puedes leer (usa Off para hablar)':myTurn?'escribe aquí…':'espera tu turno…');
   $('#chtitle').textContent=ooc?'Fuera de rol':'Chat';
-  const ps=Object.values(S.players);
-  $('#phase').textContent=ph==='dm'?'Turno del DM':'Turno de los jugadores · '+ps.filter(q=>q.done).length+'/'+ps.length;
+  $('#phase').textContent=ph==='dm'?'Turno del DM':'Turno de '+(pname(S.cur)||'…');
   if(!ok){ctx=null;renderCtx()}
 }
 function renderLog(){const log=$('#log');log.replaceChildren();S[view==='main'?'chat':'ooc'].forEach(addMsg)}
@@ -755,13 +694,15 @@ function buildMsg(m){
     }else{const p=el('p');fmt(p,m.text);if(m.ed)p.append(el('small','mute',' (editado)'));body.append(p)}
   }
   d.append(body);
-  if(m.t!=='sys'&&m.id){
+  if(m.id){
     const mb=el('span','mb');
-    const rp=el('button','rp','↩');rp.title='Responder';rp.onclick=()=>startReply(m);mb.append(rp);
-    if(m.from===me&&['chat','ooc','narr'].includes(m.t)){const ed=el('button','ed','✎');ed.title='Editar';ed.onclick=()=>startEdit(m);mb.append(ed)}
+    if(m.t!=='sys'){
+      const rp=el('button','rp','↩');rp.title='Responder';rp.onclick=()=>startReply(m);mb.append(rp);
+      if(m.from===me&&['chat','ooc','narr'].includes(m.t)){const ed=el('button','ed','✎');ed.title='Editar';ed.onclick=()=>startEdit(m);mb.append(ed)}
+    }
     if(isHost){const x=el('button','del','✕');x.title='Borrar mensaje';x.onclick=()=>send({t:'delmsg',id:m.id});mb.append(x)}
     d.append(mb);
-  }else if(isHost&&m.id){const x=el('button','del','✕');x.title='Borrar mensaje';x.onclick=()=>send({t:'delmsg',id:m.id});const mb=el('span','mb');mb.append(x);d.append(mb)}
+  }
   return d;
 }
 function addMsg(m){const d=buildMsg(m),log=$('#log');log.append(d);log.scrollTop=log.scrollHeight}
@@ -781,13 +722,8 @@ function sendText(){
   ctx=null;renderCtx();$('#ct').value='';
 }
 $('#cf').onsubmit=e=>{e.preventDefault();sendText()};
-$('#b1').onclick=()=>{
-  if(view!=='ooc'&&isHost&&S.phase==='dm')send({t:'endturn'});else sendText();
-};
-$('#b2').onclick=()=>{
-  if(isHost){if(S.phase==='dm')sendText()}
-  else send({t:'endturn'});
-};
+$('#b1').onclick=()=>{if(view!=='ooc'&&isHost&&S.phase==='dm')send({t:'endturn'});else sendText()};
+$('#b2').onclick=()=>{if(isHost&&S.phase==='dm')sendText();else send({t:'endturn'})};
 
 /* ---------- narración con fundido: 1 s entra, visible (≥3,5 s), 1 s sale ---------- */
 let nq=[],nbusy=false;
@@ -805,15 +741,16 @@ function nextNarr(){
 /* ---------- acciones (jugadores) ---------- */
 let ap={path:[],k:''};
 function closeAct(){$('#actpop').classList.add('hide');ap={path:[],k:''}}
+const myMod=k=>modOf((S.players[me]||{}).arch,k)+hpMod(myHp); /* arquetipo + estado, en un solo número */
 function renderAct(){
   const pop=$('#actpop');if(pop.classList.contains('hide'))return;
   pop.replaceChildren();
   const p=S.players[me];if(!p)return;
-  if(S.phase!=='players'||p.done){closeAct();return}
+  if(S.phase!=='players'||S.cur!==me||p.dead){closeAct();return}
   const mk=(txt,fn,mod)=>{const b=el('button','',txt);if(mod!=null)b.append(el('small','mute',fmtMod(mod)));b.onclick=fn;return b};
   const back=fn=>{const b=el('button','','← Atrás');b.onclick=fn;return b};
   if(ap.k){
-    pop.append(el('b','',LABEL[ap.k]),el('span','mute','d20 '+fmtMod(modOf(p.arch,ap.k))+' ('+p.arch+')'));
+    pop.append(el('b','',LABEL[ap.k]),el('span','mute','d20 '+fmtMod(myMod(ap.k))+' (arquetipo y estado)'));
     const inp=el('input');inp.type='text';inp.maxLength=200;
     inp.placeholder=ap.k==='luck'?'Describe lo que intentas…':'Contra quién / a quién / cómo (opcional)';
     const sb=el('button','pri','Enviar');
@@ -824,8 +761,8 @@ function renderAct(){
   }
   if(!ap.path.length){
     TREE.forEach(([g])=>pop.append(mk(g,()=>{ap.path=[g];renderAct()})));
-    pop.append(mk('Huir',()=>{ap.k='flee';renderAct()},modOf(p.arch,'flee')));
-    pop.append(mk('Probar suerte',()=>{ap.k='luck';renderAct()},0));
+    pop.append(mk('Huir',()=>{ap.k='flee';renderAct()},myMod('flee')));
+    pop.append(mk('Probar suerte',()=>{ap.k='luck';renderAct()},myMod('luck')));
   }else{
     const grp=TREE.find(x=>x[0]===ap.path[0]);
     pop.append(el('b','',ap.path[0]+(ap.path[1]?' › '+ap.path[1]:'')));
@@ -834,7 +771,7 @@ function renderAct(){
       pop.append(back(()=>{ap.path=[];renderAct()}));
     }else{
       const it=grp[1].find(x=>x[0]===ap.path[1]);
-      it[1].forEach(([o,k])=>pop.append(mk(o,()=>{ap.k=k;renderAct()},modOf(p.arch,k))));
+      it[1].forEach(([o,k])=>pop.append(mk(o,()=>{ap.k=k;renderAct()},myMod(k))));
       pop.append(back(()=>{ap.path.length=1;renderAct()}));
     }
   }
@@ -843,25 +780,28 @@ $('#actbtn').onclick=()=>{const pop=$('#actpop'),was=pop.classList.contains('hid
 
 /* ---------- estado físico y mental ---------- */
 const chip=v=>el('span','chip k-'+(CHIP[v]||'g'),v);
-function sel(opts,val,fn){const s=el('select');opts.forEach(v=>{const o=el('option','',v);o.value=v;s.append(o)});s.value=val;s.onchange=()=>fn(s.value);return s}
+function sel(opts,val,fn,dis){const s=el('select');opts.forEach(v=>{const o=el('option','',v);o.value=v;s.append(o)});s.value=val;s.disabled=!!dis;s.onchange=()=>fn(s.value);return s}
 function sec(title,node){const d=el('div','esec');d.append(el('b','',title),node);return d}
 function renderEstado(){
   const pop=$('#estpop');if(pop.classList.contains('hide'))return;
   pop.replaceChildren();
   if(isHost){
-    const ids=Object.keys(S.players);
+    const ids=Object.keys(S.players),can=S.phase==='dm';
     if(!ids.length){pop.append(el('p','mute','Sin jugadores.'));return}
+    if(!can)pop.append(el('p','mute','Solo puedes cambiar estados durante tu turno.'));
     ids.forEach(id=>{
       const h=HP[id]||{b:'Estable',m:'Estable'},r=el('div','erow');
       r.append(el('span','',S.players[id].n),
-        sec('Físico',sel(PH,h.b,v=>{
-          if(v==='Muerto'&&!confirm('¿Marcar a '+S.players[id].n+' como muerto? Volverá a la pantalla de inicio para crear otro personaje.')){renderEstado();return}
-          send({t:'hpset',id,b:v})})),
-        sec('Mental',sel(MS,h.m,v=>send({t:'hpset',id,m:v}))));
+        sec('Físico',sel(PH,h.b,v=>send({t:'hpset',id,b:v}),!can)),
+        sec('Mental',sel(MS,h.m,v=>send({t:'hpset',id,m:v}),!can)));
       pop.append(r);
     });
   }else{
-    const g=el('div','e2');g.append(sec('Físico',chip(myHp.b)),sec('Mental',chip(myHp.m)));pop.append(g);
+    const dead=myHp.b==='Muerto',g=el('div','e2');
+    g.append(sec('Físico',dead?sel(PH,myHp.b,v=>send({t:'hpset',id:me,b:v})):chip(myHp.b)),
+             sec('Mental',dead?sel(MS,myHp.m,v=>send({t:'hpset',id:me,m:v})):chip(myHp.m)));
+    pop.append(g);
+    if(dead)pop.append(el('p','mute','Estás muerto: puedes leer y usar el chat Off, y cambiar tu estado (por ejemplo, al tomar otro personaje).'));
   }
 }
 $('#estbtn').onclick=()=>{$('#estpop').classList.toggle('hide');renderEstado()};
@@ -894,18 +834,22 @@ $('#sndbtn').onclick=()=>{prof.mute=!prof.mute;saveProf();$('#sndbtn').textConte
 $('#sndbtn').textContent='Sonido: '+(prof.mute?'no':'sí');
 $('#saveEdit').onclick=async()=>{
   if(!draft.name.trim()){alert('Pon un nombre al personaje.');return}
+  if(!ARCH.includes(draft.arch)){alert('Elige un arquetipo.');return}
   await upsertChar();send({t:'char',...charMsg()});showView('Main');
 };
 function renderPList(){
   const box=$('#plist');box.replaceChildren();
   const ids=Object.keys(S.players);
   if(!ids.length)box.append(el('p','mute','Aún no hay jugadores.'));
-  ids.forEach(id=>{const b=el('button','',S.players[id].n);b.onclick=()=>showDetail(id);box.append(b)});
+  ids.forEach(id=>{const p=S.players[id],b=el('button','',p.dead&&id!==me?'???':p.n);b.onclick=()=>showDetail(id);box.append(b)});
 }
 function showDetail(id){
   const p=S.players[id],d=$('#pdet');d.replaceChildren();if(!p)return;
-  const top=el('div','row'),im=el('img','av');im.src=avSrc(p.n,p.av);top.append(im,el('h2','',p.n));
-  d.append(top,el('p','','Arquetipo: '+p.arch),el('p','','Alineamiento: '+(p.align||'—')),el('b','','¿Quién es?'),el('p','',p.bio||'—'));
+  if(p.dead&&id!==me)d.append(el('p','mute','Información oculta.')); /* un personaje muerto no muestra su información */
+  else{
+    const top=el('div','row'),im=el('img','av');im.src=avSrc(p.n,p.av);top.append(im,el('h2','',p.n));
+    d.append(top,el('p','','Arquetipo: '+p.arch),el('p','','Alineamiento: '+(p.align||'—')),el('b','','¿Quién es?'),el('p','',p.bio||'—'));
+  }
   showView('Detail');
 }
 
@@ -941,7 +885,6 @@ $('#bgfile').onchange=async e=>{
   try{send({t:'bg',src:await shrink(f,1280,'image/jpeg',.82)})}catch(x){}
 };
 $('#bgclear').onclick=()=>send({t:'bg',src:''});
-$('#forceend').onclick=()=>{if(S.phase!=='players'){alert('Ahora es el turno del DM.');return}if(confirm('¿Terminar ya el turno de los jugadores?'))send({t:'forceend'})};
 
 /* ---------- guardar / cargar partida y exportar chat ---------- */
 function chatText(){
@@ -952,19 +895,16 @@ function chatText(){
     if(m.t==='act')return '['+tm(m)+'] '+m.name+' — ACCIÓN: '+m.label+' | d20 ('+m.r+') '+(m.mod<0?'-':'+')+' '+Math.abs(m.mod)+' = '+m.total+(m.text?' | '+m.text:'')+q;
     return '['+tm(m)+'] '+m.name+(m.t==='narr'?' (narración)':'')+': '+m.text+q+e;
   };
-  return 'MOTHS & FISHERS v5.5.1 — CHAT PRINCIPAL\n\n'+S.chat.map(line).join('\n')+'\n\n--- CHAT FUERA DE ROL ---\n\n'+S.ooc.map(line).join('\n')+'\n';
+  return 'MOTHS & FISHERS v5.6 — CHAT PRINCIPAL\n\n'+S.chat.map(line).join('\n')+'\n\n--- CHAT FUERA DE ROL ---\n\n'+S.ooc.map(line).join('\n')+'\n';
 }
 function download(name,type,text){
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(a.href),3000);
 }
-function roster(){
-  const r=Object.assign({},SAVED);
-  Object.keys(S.players).forEach(id=>{const p=S.players[id],h=HP[id];if(h)r[p.n]={key:KEY[id],b:h.b,m:h.m,arch:p.arch,done:p.done,round:S.round}});
-  return r;
-}
 $('#savegame').onclick=()=>{
-  download('partida-moths-fishers.json','application/json',JSON.stringify({app:'moths-fishers',v:'5.5',bg:S.bg,npc:S.npc,phase:S.phase,round:S.round,players:roster()}));
+  const pl=Object.assign({},SAVED);
+  Object.keys(S.players).forEach(id=>{const h=HP[id];if(h)pl[S.players[id].n]={b:h.b,m:h.m}});
+  download('partida-moths-fishers.json','application/json',JSON.stringify({app:'moths-fishers',v:'5.6',bg:S.bg,npc:S.npc,players:pl}));
   setTimeout(()=>download('chat-moths-fishers.txt','text/plain;charset=utf-8',chatText()),500);
 };
 $('#loadgame').onchange=async e=>{
@@ -973,30 +913,13 @@ $('#loadgame').onchange=async e=>{
   SAVED=d.players||{};
   out({t:'bg',src:okImg(d.bg,2000000)?d.bg:''});
   out({t:'npc',npc:d.npc&&okImg(d.npc.src,MAXIMG)?{id:clip(d.npc.id,20),src:d.npc.src,name:clip(d.npc.name,24)}:null});
-  out({t:'phase',phase:d.phase==='players'?'players':'dm',round:Math.max(+d.round||0,S.round)});
-  Object.keys(S.players).forEach(id=>{const sv=SAVED[S.players[id].n];if(sv&&PH.includes(sv.b)&&sv.b!=='Muerto'&&MS.includes(sv.m))setHp(id,sv.b,sv.m)});
+  Object.keys(S.players).forEach(id=>{const sv=SAVED[S.players[id].n];if(sv&&PH.includes(sv.b)&&MS.includes(sv.m))setHp(id,sv.b,sv.m)});
   sysMsg('Partida cargada.');
 };
 
-/* ---------- el DM guarda su sala para poder recargar la página ---------- */
-setInterval(()=>{
-  if(!dirty||!isHost||!roomCode)return;dirty=false;
-  kvSet('snap',{code:roomCode,bg:S.bg,npc:S.npc,phase:S.phase,round:S.round,chat:S.chat,ooc:S.ooc,roster:roster()}).catch(()=>{});
-},2000);
-async function restoreHost(sess){
-  let snap=null;try{const r=await kvGet('snap');snap=r&&r.v}catch(e){}
-  if(!snap||snap.code!==sess.code){failAuto('No se pudo restaurar la sala.');return}
-  const now=Date.now();
-  S.bg=snap.bg||'';S.npc=snap.npc||null;S.phase=snap.phase||'dm';S.round=snap.round||0;
-  S.chat=(snap.chat||[]).filter(m=>now-(m.ts||now)<lifeOf(m));S.ooc=(snap.ooc||[]).filter(m=>now-(m.ts||now)<lifeOf(m));
-  [...S.chat,...S.ooc].forEach(m=>{m._at=m.ts||now});
-  SAVED=snap.roster||{};dmName=sess.dmName||prof.dm;
-  hostRoom(sess.code,true);
-}
-
-/* ---------- salir ---------- */
+/* ---------- salir y chat Off ---------- */
 $('#exit').onclick=()=>{
-  if(confirm(isHost?'Cerrarás la sala para todos. ¿Salir?':'¿Salir de la sala?')){leaving=true;clearSess();try{peer&&peer.destroy()}catch(e){}location.reload()}
+  if(confirm(isHost?'Cerrarás la sala para todos. ¿Salir?':'¿Salir de la sala?')){try{peer&&peer.destroy()}catch(e){}location.reload()}
 };
 $('#offbtn').onclick=()=>{
   view=view==='main'?'ooc':'main';ctx=null;renderCtx();$('#ct').value='';
@@ -1004,26 +927,9 @@ $('#offbtn').onclick=()=>{
   renderLog();renderLocks();
 };
 
-/* ---------- arranque: reanudar sesión tras recargar ---------- */
-(async()=>{
-  try{const a=await dbAll();chars=a.filter(c=>c.kind!=='npc').map(c=>({...blankChar(),...c}));npcLib=a.filter(c=>c.kind==='npc')}catch(e){}
-  renderSaved();
-  let nt=null;try{nt=JSON.parse(localStorage.getItem('notice')||'null');localStorage.removeItem('notice')}catch(e){}
-  if(nt){
-    if(nt.to==='plform'){draft=blankChar();renderEditor($('#plEditor'));go('plform')}
-    setStatus(nt.msg);return;
-  }
-  let sess=null;try{sess=JSON.parse(localStorage.getItem('sess')||'null')}catch(e){}
-  if(!sess)return;
-  go('resume');
-  if(sess.role==='pl'){
-    const c=chars.find(x=>x.id===sess.charId);
-    if(c){draft={...c};renderEditor($('#plEditor'));joinRoom(sess.code,true);return}
-  }else if(sess.role==='dm'){await restoreHost(sess);return}
-  clearSess();go('home');
-})();
-paintInit();
-function paintInit(){renderEditor($('#plEditor'))}
+/* ---------- arranque ---------- */
+dbAll().then(a=>{chars=a.filter(c=>c.kind!=='npc').map(c=>({...blankChar(),...c}));npcLib=a.filter(c=>c.kind==='npc');renderSaved()}).catch(()=>{});
+renderEditor($('#plEditor'));
 </script>
 </body>
 </html>
