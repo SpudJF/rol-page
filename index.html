@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Moths &amp; Fishers v5.6</title>
+<title>Moths &amp; Fishers v5.8</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
 <style>
@@ -108,6 +108,7 @@ h1,h2{font-weight:500;font-variant:small-caps;letter-spacing:.05em;color:var(--g
 .pop{position:absolute;bottom:calc(100% + 8px);left:0;z-index:20;min-width:min(320px,90vw);max-height:60vh;overflow:auto;padding:.7rem;display:grid;gap:.5rem}
 .pop button{text-align:left}
 .pop small{margin-left:.4rem}
+.tagrow{display:flex;flex-wrap:wrap;gap:.4rem}.tagrow button{text-align:center}
 .e2,.erow{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
 .erow>span{grid-column:1/-1;color:var(--gold);font-weight:700}
 .esec{display:grid;gap:.25rem;justify-items:start}
@@ -140,7 +141,7 @@ dialog h2{font-size:1.6rem}
 </head>
 <body>
 <section id="home" class="box scr">
-  <h1>Moths &amp; Fishers <small>v5.6</small></h1>
+  <h1>Moths &amp; Fishers <small>v5.8</small></h1>
   <button id="bDM" class="pri">Soy DM</button>
   <button id="bPL">Soy jugador</button>
 </section>
@@ -190,7 +191,7 @@ dialog h2{font-size:1.6rem}
 
 <dialog id="dlg">
   <div id="vMain">
-    <h2>Moths and Fishers v5.6</h2>
+    <h2>Moths and Fishers v5.8</h2>
     <p style="margin:0">Jugadores activos: <b id="actn"></b> · Código: <b id="codeshow"></b></p>
     <div class="menu">
       <button id="copycode">Copiar código</button>
@@ -255,26 +256,61 @@ const hpMod=h=>(HB[h.b]||0)+(MB[h.m]||0);
 const ALIGN=['Legal bueno','Neutral bueno','Caótico bueno','Legal neutral','Neutral','Caótico neutral','Legal malvado','Neutral malvado','Caótico malvado'];
 const SL=[['rest','Neutral'],['talk','Hablando'],['fall','Moribundo'],['moral','Derrota moral']];
 
-/* ---------- arquetipos, acciones y modificadores ---------- */
-const ARCH=['Civil','Mago','Guerrero'];
-const KEYS=['sa_hit','sa_weapon','sa_magic','sh_none','sh_med','sh_magic','sd_body','sd_shield','sd_magic','sp_body','sp_shield','sp_magic','la_weapon','la_magic','flee'];
-const MOD={
-  Civil:   [1,2,-3,  -1,3,-3,  -3,2,-5,  -3,2,-5,  1,-3,  1],
-  Mago:    [-2,-1,3, -2,0,3,   -3,1,3,   -4,1,3,   0,4,   0],
-  Guerrero:[3,2,-5,  -2,0,-5,  2,1,-5,   3,1,-5,   4,-5,  -5]
-};
-const modOf=(a,k)=>k==='luck'?0:((MOD[a]||MOD.Civil)[KEYS.indexOf(k)]||0);
-const TREE=[
-  ['Corta distancia',[
-    ['Atacar enemigo',[['A golpes','sa_hit'],['Con un arma','sa_weapon'],['Con magia','sa_magic']]],
-    ['Curar aliado',[['Sin nada','sh_none'],['Con medicinas','sh_med'],['Con magia','sh_magic']]],
-    ['Defenderse',[['Con tu cuerpo','sd_body'],['Con escudo u otros','sd_shield'],['Con magia','sd_magic']]],
-    ['Proteger aliado',[['Con tu cuerpo','sp_body'],['Con escudo u otros','sp_shield'],['Con magia','sp_magic']]]]],
-  ['Larga distancia',[['Atacar enemigo',[['Con arma','la_weapon'],['Con magia','la_magic']]]]]
+/* ---------- tags, ámbitos, acciones y arquetipos ---------- */
+const TAGS={FUE:'Fuerza / cuerpo a cuerpo',ARM:'Armas cuerpo a cuerpo',DIS:'Puntería / armas a distancia',MOV:'Movimiento / atletismo',SIG:'Sigilo / subterfugio',MAG:'Magia / sobrenatural',SUP:'Supervivencia / medicina',DEF:'Defensa / aguante',ANI:'Animales / domar / montar'};
+const DIST={Corto:'Corto (0-3 m)',Medio:'Medio (3-30 m)',Largo:'Largo (+30 m)'};
+/* ámbito: nombre, sus tags (cada tag pertenece a un solo ámbito) y, por distancia, la lista de acciones */
+const AMB=[
+ {n:'Combate cuerpo a cuerpo',tags:['FUE','ARM'],ds:[['Corto','Atacar con arma|Atacar desarmado|Agarrar|Derribar|Inmovilizar|Desarmar|Parar / bloquear|Esquivar|Contraatacar|Cargar|Aturdir|Cubrir a un aliado|Provocar|Usar el entorno|Golpe preciso|Zancadillear|Forcejear']]},
+ {n:'Combate a distancia',tags:['DIS'],ds:[['Medio','Disparar|Lanzar|Apuntar|Disparo rápido|Recargar|Cubrirse|Derribar a distancia'],['Largo','Disparar a distancia|Disparo de supresión|Cazar|Calcular trayectoria']]},
+ {n:'Movimiento y posición',tags:['MOV'],ds:[['Corto','Rodar|Equilibrar|Saltar|Cruzar obstáculo'],['Medio','Correr|Esprintar|Trepar|Nadar|Montar|Flanquear|Reposicionar|Perseguir|Huir'],['Largo','Perseguir|Huir|Forzar marcha']]},
+ {n:'Sigilo y subterfugio',tags:['SIG'],ds:[['Corto','Esconderse|Robar bolsillo|Abrir cerradura|Desactivar trampa|Robar objeto|Colarse|Disfrazarse'],['Medio','Infiltrarse|Seguir a alguien|Ocultar pista|Borrar rastro|Camuflar']]},
+ {n:'Magia y sobrenatural',tags:['MAG'],ds:[['Corto','Lanzar hechizo|Canalizar|Curar mágico|Bendecir|Maldecir|Ilusión|Controlar energía'],['Medio','Lanzar hechizo|Detectar magia|Disipar|Identificar objeto mágico|Invocar|Proteger|Adivinación'],['Largo','Ritual|Abrir portal|Adivinación lejana|Maldición a distancia']]},
+ {n:'Supervivencia, medicina y animales',tags:['SUP','ANI'],ds:[['Corto','Curar heridas|Estabilizar|Tratar veneno|Domar|Calmar animal'],['Medio','Orientarse|Acampar|Crear refugio|Recolectar|Rastrear|Encontrar agua'],['Largo','Cazar|Pescar|Rastrear rastros lejanos']]},
+ {n:'Apoyo y reacción',tags:['DEF'],ds:[['Corto','Ayudar|Cubrir|Interceptar|Proteger|Curar a un aliado|Crear ventaja'],['Medio','Reservar acción|Reaccionar|Mantener concentración|Inspirar']]}
 ];
-const LABEL={flee:'Huir',luck:'Probar suerte'};
-TREE.forEach(([g,items])=>items.forEach(([n,opts])=>opts.forEach(([o,k])=>{LABEL[k]=g+' · '+n+' · '+o})));
-const fmtMod=n=>(n<0?'−':'+')+' '+Math.abs(n);
+AMB.forEach(A=>{A.ds=A.ds.map(([d,l])=>[d,l.split('|')])});
+/* arquetipos: nombre | +3 | +2 | +1 | -1 | -2 (los tags que no aparecen valen 0) */
+const ARCH_ROWS=`Bárbaro|FUE|DEF|SUP|SIG|MAG
+Guerrero|ARM|FUE|DEF|SIG|MAG
+Caballero|ARM|DEF|MOV|SIG|ANI
+Paladín|ARM|MAG|DEF|SIG|ANI
+Berserker|FUE|DEF|ARM|SIG|MAG
+Duelista|ARM|MOV|DEF|FUE|SUP
+Monje|FUE|MOV|DEF|ARM|MAG
+Arquero|DIS|MOV|SIG|FUE|MAG
+Ballestero|DIS|DEF|SUP|MOV|MAG
+Lancero|ARM|DEF|FUE|SIG|MAG
+Gladiador|ARM|FUE|DEF|SIG|MAG
+Guardabosques|SUP|DIS|SIG|ARM|MAG
+Explorador|SUP|MOV|SIG|ARM|MAG
+Pícaro|SIG|MOV|DIS|FUE|MAG
+Asesino|SIG|ARM|MOV|DEF|MAG
+Mago|MAG|DEF|MOV|ARM|FUE
+Hechicero|MAG|SUP|DIS|ARM|FUE
+Brujo|MAG|SIG|ARM|DEF|SUP
+Clérigo|MAG|SUP|DEF|SIG|ANI
+Druida|MAG|SUP|ANI|ARM|FUE
+Nigromante|MAG|SIG|ARM|FUE|ANI
+Ilusionista|MAG|SIG|MOV|ARM|DEF
+Inquisidor|MAG|ARM|DEF|SIG|ANI
+Cazador de monstruos|SUP|ARM|MAG|SIG|ANI
+Sanador / Oráculo|SUP|MAG|DEF|ARM|SIG
+Domador / Jinete|ANI|SUP|MOV|MAG|ARM
+Pirata|MOV|ARM|DIS|SIG|MAG`;
+const ARCHMOD={};
+ARCH_ROWS.split('\n').forEach(r=>{const [n,...t]=r.split('|');ARCHMOD[n]={};t.forEach((g,i)=>{ARCHMOD[n][g]=[3,2,1,-1,-2][i]})});
+const ARCH=Object.keys(ARCHMOD);
+const modOf=(a,g)=>(ARCHMOD[a]||{})[g]||0;
+const fmtMod=n=>(n<0?'\u2212':'+')+' '+Math.abs(n);
+const archText=a=>ARCHMOD[a]?Object.entries(ARCHMOD[a]).map(([g,v])=>(v>0?'+':'\u2212')+Math.abs(v)+' '+g).join(' · ')+' (el resto de tags: 0)':'';
+/* valida una acción enviada por un jugador y devuelve su texto y el modificador de arquetipo */
+function actInfo(m,arch){
+  if(m.luck)return{label:'Probar suerte',mod:0};
+  const A=Number.isInteger(m.a)?AMB[m.a]:null,D=A&&Number.isInteger(m.d)?A.ds[m.d]:null,nm=D&&Number.isInteger(m.i)?D[1][m.i]:null;
+  if(!nm||!A.tags.includes(m.g))return null;
+  return{label:A.n+' · '+D[0]+' · '+nm+' ('+m.g+')',mod:modOf(arch,m.g)};
+}
 
 /* ---------- estado global ---------- */
 let peer,isHost=false,conns=[],hostConn=null,me='',roomCode='',dmName='',view='main';
@@ -352,7 +388,7 @@ function renderEditor(root){
   al.value=draft.align;al.onchange=()=>{draft.align=al.value};
   const ar=el('select');
   [['','Arquetipo…']].concat(ARCH.map(a=>[a,a])).forEach(([v,t])=>{const o=el('option','',t);o.value=v;ar.append(o)});
-  ar.value=draft.arch;ar.onchange=()=>{draft.arch=ar.value};
+  ar.value=draft.arch;const sum=el('span','mute',archText(draft.arch));ar.onchange=()=>{draft.arch=ar.value;sum.textContent=archText(ar.value)};
   const row=el('div','slots4');
   SL.forEach(([k,lab])=>{
     const d=el('div','sl');d.append(el('b','',lab));
@@ -364,14 +400,14 @@ function renderEditor(root){
     if(draft[k]){const x=el('button','','Quitar');x.onclick=()=>{draft[k]='';renderEditor(root)};d.append(x)}
     row.append(d);
   });
-  root.append(top,bio,al,ar,el('span','mute','Sprites (PNG o GIF, máx. 3 MB):'),row);
+  root.append(top,bio,al,ar,sum,el('span','mute','Sprites (PNG o GIF, máx. 3 MB):'),row);
 }
 function renderSaved(){
   const box=$('#saved');box.replaceChildren();
   if(!chars.length)return;
   box.append(el('span','mute','Guardados:'));
   chars.forEach(c=>{
-    const b=el('button','',c.name);b.onclick=()=>{draft={...c};renderEditor($('#plEditor'))};
+    const b=el('button','',c.name);b.onclick=()=>{draft={...c};if(!ARCH.includes(draft.arch))draft.arch='';renderEditor($('#plEditor'))};
     const x=el('button','','×');x.title='Borrar de mis guardados';
     x.onclick=()=>{if(confirm('¿Borrar a '+c.name+' de tus guardados?')){dbDel(c.id).catch(()=>{});chars=chars.filter(k=>k!==c);renderSaved()}};
     box.append(b,x);
@@ -502,7 +538,7 @@ function hello(m,c){
   const cc=cleanChar(m),slot=[0,1,2,3].find(i=>!Object.values(S.players).some(q=>q.slot===i));
   if(slot===undefined){c.send({t:'full'});setTimeout(()=>c.close(),400);return}
   const sv=SAVED[cc.n],h=sv&&PH.includes(sv.b)&&MS.includes(sv.m)?{b:sv.b,m:sv.m}:{b:'Estable',m:'Estable'};
-  const p={...cc,arch:cc.arch||'Civil',slot,hi:Math.min(PH.indexOf(h.b),3),mi:MS.indexOf(h.m),dead:h.b==='Muerto'};
+  const p={...cc,arch:cc.arch||'',slot,hi:Math.min(PH.indexOf(h.b),3),mi:MS.indexOf(h.m),dead:h.b==='Muerto'};
   HP[c.peer]=h;
   out({t:'join',id:c.peer,p});c.send({t:'hp',b:h.b,m:h.m});sysMsg(p.n+' se unió');
 }
@@ -519,10 +555,11 @@ function process(m,c){
     case 'ooc':{const text=clip(m.text,500);if(text.trim())out({t,...base(),text,re:cleanRe(m.re)});break}
     case 'narr':{const text=clip(m.text,400);if(H&&S.phase==='dm'&&text.trim())out({t,id:rid(),ts:Date.now(),from:who,dm:true,name:clip(m.name,24).trim()||'Narrador',text,re:cleanRe(m.re)});break}
     case 'act':{
-      if(!canP||!LABEL[m.k])break;
-      const text=clip(m.text,200);if(m.k==='luck'&&!text.trim())break;
-      const mod=modOf(p.arch,m.k)+hpMod(HP[who]||{b:'Estable',m:'Estable'}),r=1+rnd()%20; /* arquetipo + salud, en un solo número */
-      out({t,...base(),label:LABEL[m.k],r,mod,total:r+mod,text});
+      if(!canP)break;
+      const text=clip(m.text,200);if(m.luck&&!text.trim())break;
+      const info=actInfo(m,p.arch);if(!info)break;
+      const mod=info.mod+hpMod(HP[who]||{b:'Estable',m:'Estable'}),r=1+rnd()%20; /* tag del arquetipo + salud, en un solo número */
+      out({t,...base(),label:info.label,r,mod,total:r+mod,text});
       advance();break; /* la acción termina el turno */
     }
     case 'endturn':
@@ -624,11 +661,11 @@ const chime=()=>tones([[1175,.12,0,.2],[1568,.1,.1,.22]]); /* chat Off: dos nota
 function notify(m,ooc){
   if(ooc)chime();else bell();
   if(document.hidden){
-    unread++;document.title='('+unread+') Moths & Fishers v5.6';
+    unread++;document.title='('+unread+') Moths & Fishers v5.8';
     try{if(window.Notification&&Notification.permission==='granted')new Notification(m.name+(ooc?' (Off)':''),{body:m.t==='act'?m.label:m.text,silent:true})}catch(e){}
   }
 }
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){unread=0;document.title='Moths & Fishers v5.6'}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){unread=0;document.title='Moths & Fishers v5.8'}});
 
 /* ---------- render ---------- */
 function renderAll(){renderBg();renderNpc();renderPlayers();renderLog()}
@@ -739,41 +776,52 @@ function nextNarr(){
 }
 
 /* ---------- acciones (jugadores) ---------- */
-let ap={path:[],k:''};
-function closeAct(){$('#actpop').classList.add('hide');ap={path:[],k:''}}
-const myMod=k=>modOf((S.players[me]||{}).arch,k)+hpMod(myHp); /* arquetipo + estado, en un solo número */
+const apNew=()=>({a:-1,d:-1,i:-1,g:'',luck:false});
+let ap=apNew();
+function closeAct(){$('#actpop').classList.add('hide');ap=apNew()}
+const tagMod=g=>modOf((S.players[me]||{}).arch,g)+hpMod(myHp); /* tag del arquetipo + estado, en un solo número */
 function renderAct(){
   const pop=$('#actpop');if(pop.classList.contains('hide'))return;
   pop.replaceChildren();
   const p=S.players[me];if(!p)return;
   if(S.phase!=='players'||S.cur!==me||p.dead){closeAct();return}
-  const mk=(txt,fn,mod)=>{const b=el('button','',txt);if(mod!=null)b.append(el('small','mute',fmtMod(mod)));b.onclick=fn;return b};
+  const mk=(txt,fn,hint)=>{const b=el('button','',txt);if(hint)b.append(el('small','mute',hint));b.onclick=fn;return b};
   const back=fn=>{const b=el('button','','← Atrás');b.onclick=fn;return b};
-  if(ap.k){
-    pop.append(el('b','',LABEL[ap.k]),el('span','mute','d20 '+fmtMod(myMod(ap.k))+' (arquetipo y estado)'));
+  const A=AMB[ap.a];
+  const tagLine=()=>el('span','mute','Tus tags aquí: '+A.tags.map(g=>g+' '+fmtMod(modOf(p.arch,g))).join(' · '));
+  if(ap.luck||ap.i>=0){ /* último paso: elegir tag, escribir y enviar */
+    const luck=ap.luck;
+    pop.append(el('b','',luck?'Probar suerte':A.n+' · '+A.ds[ap.d][0]+' · '+A.ds[ap.d][1][ap.i]));
+    if(!luck){
+      if(!A.tags.includes(ap.g))ap.g=A.tags.slice().sort((x,y)=>modOf(p.arch,y)-modOf(p.arch,x))[0]; /* por defecto, tu mejor tag */
+      const tb=el('div','tagrow');
+      A.tags.forEach(g=>{const b=el('button',g===ap.g?'pri':'',g);b.title=TAGS[g];b.append(el('small','',fmtMod(tagMod(g))));b.onclick=()=>{ap.g=g;renderAct()};tb.append(b)});
+      if(A.tags.length>1)pop.append(el('span','mute','Tag a usar (según la narrativa):'),tb,el('span','mute',TAGS[ap.g]));else pop.append(el('span','mute','Tag: '+ap.g+' · '+TAGS[ap.g]));
+    }
+    pop.append(el('span','mute','d20 '+fmtMod(luck?hpMod(myHp):tagMod(ap.g))+' (arquetipo y estado)'));
     const inp=el('input');inp.type='text';inp.maxLength=200;
-    inp.placeholder=ap.k==='luck'?'Describe lo que intentas…':'Contra quién / a quién / cómo (opcional)';
+    inp.placeholder=luck?'Describe lo que intentas…':'Contra quién / a quién / cómo (opcional)';
     const sb=el('button','pri','Enviar');
-    sb.onclick=()=>{if(ap.k==='luck'&&!inp.value.trim()){inp.focus();return}send({t:'act',k:ap.k,text:inp.value});closeAct()};
+    sb.onclick=()=>{
+      if(luck&&!inp.value.trim()){inp.focus();return}
+      send({t:'act',...(luck?{luck:1}:{a:ap.a,d:ap.d,i:ap.i,g:ap.g}),text:inp.value});closeAct();
+    };
     inp.onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();sb.click()}};
-    const row=el('div','row');row.append(inp,sb);pop.append(row,back(()=>{ap.k='';renderAct()}));
+    const row=el('div','row');row.append(inp,sb);
+    pop.append(row,back(()=>{if(luck)ap=apNew();else ap.i=-1;renderAct()}));
     setTimeout(()=>inp.focus(),0);return;
   }
-  if(!ap.path.length){
-    TREE.forEach(([g])=>pop.append(mk(g,()=>{ap.path=[g];renderAct()})));
-    pop.append(mk('Huir',()=>{ap.k='flee';renderAct()},myMod('flee')));
-    pop.append(mk('Probar suerte',()=>{ap.k='luck';renderAct()},myMod('luck')));
+  if(ap.a<0){
+    AMB.forEach((X,i)=>pop.append(mk(X.n,()=>{ap.a=i;renderAct()},X.tags.join(' · '))));
+    pop.append(mk('Probar suerte',()=>{ap.luck=true;renderAct()},fmtMod(hpMod(myHp))));
+  }else if(ap.d<0){
+    pop.append(el('b','',A.n),tagLine());
+    A.ds.forEach(([dn],i)=>pop.append(mk(DIST[dn],()=>{ap.d=i;renderAct()})));
+    pop.append(back(()=>{ap=apNew();renderAct()}));
   }else{
-    const grp=TREE.find(x=>x[0]===ap.path[0]);
-    pop.append(el('b','',ap.path[0]+(ap.path[1]?' › '+ap.path[1]:'')));
-    if(ap.path.length===1){
-      grp[1].forEach(([n])=>pop.append(mk(n,()=>{ap.path.push(n);renderAct()})));
-      pop.append(back(()=>{ap.path=[];renderAct()}));
-    }else{
-      const it=grp[1].find(x=>x[0]===ap.path[1]);
-      it[1].forEach(([o,k])=>pop.append(mk(o,()=>{ap.k=k;renderAct()},myMod(k))));
-      pop.append(back(()=>{ap.path.length=1;renderAct()}));
-    }
+    pop.append(el('b','',A.n+' › '+DIST[A.ds[ap.d][0]]),tagLine());
+    A.ds[ap.d][1].forEach((nm,i)=>pop.append(mk(nm,()=>{ap.i=i;renderAct()})));
+    pop.append(back(()=>{ap.d=-1;renderAct()}));
   }
 }
 $('#actbtn').onclick=()=>{const pop=$('#actpop'),was=pop.classList.contains('hide');closeAct();if(was){pop.classList.remove('hide');renderAct()}};
@@ -848,7 +896,7 @@ function showDetail(id){
   if(p.dead&&id!==me)d.append(el('p','mute','Información oculta.')); /* un personaje muerto no muestra su información */
   else{
     const top=el('div','row'),im=el('img','av');im.src=avSrc(p.n,p.av);top.append(im,el('h2','',p.n));
-    d.append(top,el('p','','Arquetipo: '+p.arch),el('p','','Alineamiento: '+(p.align||'—')),el('b','','¿Quién es?'),el('p','',p.bio||'—'));
+    d.append(top,el('p','','Arquetipo: '+(p.arch||'—')),el('p','','Alineamiento: '+(p.align||'—')),el('b','','¿Quién es?'),el('p','',p.bio||'—'));
   }
   showView('Detail');
 }
@@ -895,7 +943,7 @@ function chatText(){
     if(m.t==='act')return '['+tm(m)+'] '+m.name+' — ACCIÓN: '+m.label+' | d20 ('+m.r+') '+(m.mod<0?'-':'+')+' '+Math.abs(m.mod)+' = '+m.total+(m.text?' | '+m.text:'')+q;
     return '['+tm(m)+'] '+m.name+(m.t==='narr'?' (narración)':'')+': '+m.text+q+e;
   };
-  return 'MOTHS & FISHERS v5.6 — CHAT PRINCIPAL\n\n'+S.chat.map(line).join('\n')+'\n\n--- CHAT FUERA DE ROL ---\n\n'+S.ooc.map(line).join('\n')+'\n';
+  return 'MOTHS & FISHERS v5.8 — CHAT PRINCIPAL\n\n'+S.chat.map(line).join('\n')+'\n\n--- CHAT FUERA DE ROL ---\n\n'+S.ooc.map(line).join('\n')+'\n';
 }
 function download(name,type,text){
   const a=document.createElement('a');
@@ -904,7 +952,7 @@ function download(name,type,text){
 $('#savegame').onclick=()=>{
   const pl=Object.assign({},SAVED);
   Object.keys(S.players).forEach(id=>{const h=HP[id];if(h)pl[S.players[id].n]={b:h.b,m:h.m}});
-  download('partida-moths-fishers.json','application/json',JSON.stringify({app:'moths-fishers',v:'5.6',bg:S.bg,npc:S.npc,players:pl}));
+  download('partida-moths-fishers.json','application/json',JSON.stringify({app:'moths-fishers',v:'5.8',bg:S.bg,npc:S.npc,players:pl}));
   setTimeout(()=>download('chat-moths-fishers.txt','text/plain;charset=utf-8',chatText()),500);
 };
 $('#loadgame').onchange=async e=>{
