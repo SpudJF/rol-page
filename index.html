@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Moths &amp; Fishers v5.8</title>
+<title>Moths &amp; Fishers v5.9</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
 <style>
@@ -105,8 +105,11 @@ h1,h2{font-weight:500;font-variant:small-caps;letter-spacing:.05em;color:var(--g
 #actwrap,#estwrap{position:relative}
 #actbtn,#estbtn,#gear,#exit{width:100%;height:100%;padding:0}
 #gear{font-size:1.6rem;line-height:1}
-.pop{position:absolute;bottom:calc(100% + 8px);left:0;z-index:20;min-width:min(320px,90vw);max-height:60vh;overflow:auto;padding:.7rem;display:grid;gap:.5rem}
-.pop button{text-align:left}
+.pop{position:absolute;bottom:calc(100% + 8px);left:0;z-index:20;width:min(92vw,360px);max-height:min(60vh,440px);overflow:auto;padding:.7rem;display:grid;gap:.5rem}
+.pop button{text-align:left;padding:.4rem .6rem}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:.4rem}
+.grid2 small{display:block;margin:0}
+.pgs{display:flex;gap:.4rem}.pgs button{min-width:2.4rem;text-align:center}
 .pop small{margin-left:.4rem}
 .tagrow{display:flex;flex-wrap:wrap;gap:.4rem}.tagrow button{text-align:center}
 .e2,.erow{display:grid;grid-template-columns:1fr 1fr;gap:.6rem}
@@ -122,7 +125,8 @@ dialog>div{display:grid;gap:.6rem}
 dialog h2{font-size:1.6rem}
 .menu{display:grid;grid-template-columns:1fr 1fr;gap:.5rem}
 .menu button{padding:.5rem}
-#npclib{display:flex;flex-wrap:wrap;gap:.5rem}
+#npclib,#bglib{display:flex;flex-wrap:wrap;gap:.5rem}
+#connbar{position:fixed;top:10px;left:50%;transform:translateX(-50%);z-index:60;display:flex;gap:.6rem;align-items:center;padding:.4rem .8rem;max-width:92vw;font-size:.95rem}
 .ch{position:relative;width:84px;text-align:center;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:.25rem;cursor:pointer}
 .ch.on{border-color:var(--gold);box-shadow:0 0 0 2px var(--acc)}
 .ch img{width:100%;height:60px;object-fit:cover;border-radius:6px;display:block}
@@ -141,9 +145,13 @@ dialog h2{font-size:1.6rem}
 </head>
 <body>
 <section id="home" class="box scr">
-  <h1>Moths &amp; Fishers <small>v5.8</small></h1>
+  <h1>Moths &amp; Fishers <small>v5.9</small></h1>
+  <div id="resumebar" class="box hide" style="padding:.7rem;display:grid;gap:.5rem"><span id="restxt"></span><div class="row"><button id="resgo" class="pri"></button><button id="resno">Descartar</button></div></div>
   <button id="bDM" class="pri">Soy DM</button>
   <button id="bPL">Soy jugador</button>
+  <div class="row" style="flex-wrap:wrap"><button class="bkexp">Guardar respaldo</button><button class="bkimp">Restaurar respaldo</button></div>
+  <span class="mute" style="font-size:.85rem">El respaldo guarda en un archivo tus personajes, NPCs, fondos y escenas de este navegador.</span>
+  <p class="status mute" style="margin:0" role="status"></p>
 </section>
 
 <section id="dmform" class="box scr hide">
@@ -189,9 +197,12 @@ dialog h2{font-size:1.6rem}
   </div>
 </div>
 
+<div id="connbar" class="box hide"><span id="connmsg"></span><button id="reconbtn" class="pri hide">Reconectar</button></div>
+<input id="bkfile" type="file" accept=".json,application/json" hidden>
+
 <dialog id="dlg">
   <div id="vMain">
-    <h2>Moths and Fishers v5.8</h2>
+    <h2>Moths and Fishers v5.9</h2>
     <p style="margin:0">Jugadores activos: <b id="actn"></b> · Código: <b id="codeshow"></b></p>
     <div class="menu">
       <button id="copycode">Copiar código</button>
@@ -199,6 +210,8 @@ dialog h2{font-size:1.6rem}
       <button id="goList">Lista de personajes</button>
       <button id="goDM" class="dmonly hide">DM</button>
       <button id="sndbtn">Sonido: sí</button>
+      <button class="bkexp">Guardar respaldo</button>
+      <button class="bkimp">Restaurar respaldo</button>
     </div>
   </div>
   <div id="vEdit" class="hide">
@@ -217,8 +230,14 @@ dialog h2{font-size:1.6rem}
   </div>
   <div id="vDM" class="hide">
     <h2>DM</h2>
-    <div class="sep"><b>Fondo</b>
-      <div class="row"><label class="btn">Cambiar fondo<input id="bgfile" type="file" accept="image/*" hidden></label><button id="bgclear">Quitar fondo</button></div></div>
+    <div class="sep"><b>Fondos</b>
+      <span class="mute">Toca un fondo para ponerlo. Se guardan en este navegador.</span>
+      <div id="bglib"></div>
+      <div class="row"><input id="bgname" type="text" placeholder="Nombre del fondo" maxlength="24"><label class="btn">Añadir fondo<input id="bgfile" type="file" accept="image/*" hidden></label><button id="bgclear">Quitar fondo</button></div></div>
+    <div class="sep"><b>Escenas</b>
+      <span class="mute">Una escena guarda el fondo y el NPC que tengas puestos ahora, para ponerlos de nuevo con un toque.</span>
+      <div id="sclib" class="saved"></div>
+      <div class="row"><input id="scname" type="text" placeholder="Nombre de la escena" maxlength="24"><button id="scsave">Guardar escena actual</button></div></div>
     <div class="sep"><b>NPCs</b>
       <span class="mute">Toca un NPC para mostrarlo en el centro (solo uno a la vez). PNG o GIF, máx. 3 MB.</span>
       <div id="npclib"></div>
@@ -314,14 +333,18 @@ function actInfo(m,arch){
 
 /* ---------- estado global ---------- */
 let peer,isHost=false,conns=[],hostConn=null,me='',roomCode='',dmName='',view='main';
-let chars=[],npcLib=[],HP={},SAVED={},myHp={b:'Estable',m:'Estable'},ctx=null;
+let chars=[],npcLib=[],bgLib=[],scenes=[],snap=null,HP={},KEY={},SAVED={},myHp={b:'Estable',m:'Estable'},ctx=null;
+let leaving=false,reconnecting=false,rcTries=0,hb=0,lastSeen=0,hostTries=0,dirty=false;
 const blankChar=()=>({id:'',name:'',av:'',bio:'',align:'',arch:'',rest:'',talk:'',fall:'',moral:''});
 let draft=blankChar();
 /* phase: 'dm' o 'players'; cur: jugador que tiene el turno. La partida empieza en turno del DM */
 let S={bg:'',npc:null,phase:'dm',cur:'',players:{},chat:[],ooc:[]};
-let prof={narr:'',mute:false,dm:''};
+let prof={narr:'',mute:false,dm:'',key:''};
 try{Object.assign(prof,JSON.parse(localStorage.getItem('prof2')||'{}'))}catch(e){}
 const saveProf=()=>{try{localStorage.setItem('prof2',JSON.stringify(prof))}catch(e){}};
+if(!prof.key){prof.key=rid()+rid()+rid();saveProf()} /* identifica a este navegador para poder reconectarse al mismo lugar */
+const clearSess=()=>{try{localStorage.removeItem('sess')}catch(e){}};
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){} /* pide que el navegador no borre tus datos guardados */
 const lifeOf=m=>m.t==='act'?LIFE_ACT:LIFE;
 const pname=id=>{const p=S.players[id];return p?p.n:''};
 
@@ -420,7 +443,7 @@ async function upsertChar(){
   try{await Promise.race([dbPut(c),new Promise(r=>setTimeout(r,1500))])}catch(e){}
   renderSaved();
 }
-const charMsg=()=>({name:draft.name,av:draft.av,bio:draft.bio,align:draft.align,arch:draft.arch,rest:draft.rest,talk:draft.talk,fall:draft.fall,moral:draft.moral});
+const charMsg=()=>({name:draft.name,av:draft.av,bio:draft.bio,align:draft.align,arch:draft.arch,rest:draft.rest,talk:draft.talk,fall:draft.fall,moral:draft.moral,key:prof.key});
 function cleanChar(m){
   const g=s=>okImg(s,MAXIMG)?s:'';
   const c={n:clip(m.name,24).trim()||'Jugador',av:okImg(m.av,20000)?m.av:'',bio:clip(m.bio,600),align:ALIGN.includes(m.align)?m.align:'',rest:g(m.rest),talk:g(m.talk),fall:g(m.fall),moral:g(m.moral)};
@@ -433,14 +456,16 @@ const go=id=>['home','dmform','plform'].forEach(s=>$('#'+s).classList.toggle('hi
 document.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 $('#bDM').onclick=()=>{$('#dmname').value=prof.dm;go('dmform')};
 $('#bPL').onclick=()=>{renderEditor($('#plEditor'));renderSaved();go('plform')};
-const setStatus=t=>document.querySelectorAll('.status').forEach(e=>e.textContent=t);
+const setConn=t=>{$('#connmsg').textContent=t};
+const setStatus=t=>{document.querySelectorAll('.status').forEach(e=>e.textContent=t);if(reconnecting)setConn(t)};
 window.addEventListener('error',e=>setStatus('Error en la página: '+e.message));
 const askNotif=()=>{try{if(window.Notification&&Notification.permission==='default')Notification.requestPermission()}catch(e){}};
-const bail=msg=>{alert(msg);location.reload()};
+const bail=msg=>{leaving=true;clearSess();alert(msg);location.reload()};
 
 /* ---------- conexión ---------- */
 function enter(code){
   roomCode=code;
+  try{localStorage.setItem('sess',JSON.stringify(isHost?{role:'dm',code}:{role:'pl',code,charId:draft.id}))}catch(e){}
   ['home','dmform','plform'].forEach(s=>$('#'+s).classList.add('hide'));$('#app').classList.remove('hide');
   document.querySelectorAll('.dmonly').forEach(e=>e.classList.toggle('hide',!isHost));
   document.querySelectorAll('.plonly').forEach(e=>e.classList.toggle('hide',isHost));
@@ -448,71 +473,114 @@ function enter(code){
   $('#narrname').value=prof.narr;$('#codeshow').textContent=code;
   renderAll();
 }
-function hostRoom(){
-  dmName=$('#dmname').value.trim();
+function hostRoom(resume){ /* resume: instantánea guardada para reanudar la misma sala */
   if(typeof Peer==='undefined'){setStatus('No se pudo cargar PeerJS. Revisa tu conexión.');return}
-  if(!dmName){setStatus('Escribe tu nombre para continuar.');return}
-  prof.dm=dmName;saveProf();askNotif();
+  if(resume)dmName=resume.dmName||prof.dm;
+  else{
+    dmName=$('#dmname').value.trim();
+    if(!dmName){setStatus('Escribe tu nombre para continuar.');return}
+    prof.dm=dmName;saveProf();askNotif();
+  }
   isHost=true;me='host';
-  const code=Math.random().toString(36).slice(2,6).toUpperCase();
-  setStatus('Creando sala…');
+  const code=resume?resume.code:Math.random().toString(36).slice(2,6).toUpperCase();
+  setStatus(resume?'Reanudando la sala '+code+'…':'Creando sala…');
   peer=new Peer(PFX+code,PEER_OPTS);
   peer.on('disconnected',()=>{try{peer.reconnect()}catch(e){}});
-  const to=setTimeout(()=>setStatus(SLOW),12000);
-  peer.on('open',()=>{clearTimeout(to);enter(code);sysMsg('Sala creada. Código: '+code)});
+  const to=setTimeout(()=>{if(!resume)setStatus(SLOW)},12000);
+  peer.on('open',()=>{
+    clearTimeout(to);enter(code);
+    if(resume){restoreFrom(resume);sysMsg('Sala reanudada. Los jugadores pueden volver a entrar con el mismo código.')}
+    else sysMsg('Sala creada. Código: '+code);
+  });
   peer.on('connection',c=>{
     addMsg({t:'sys',text:'Alguien está intentando conectarse…'});
     c.on('iceStateChanged',st=>{if(st==='failed'||st==='disconnected')addMsg({t:'sys',text:'Falló la conexión directa con un jugador ('+st+'). Suele ser una VPN o una red restrictiva.'})});
     c.on('open',()=>{conns.push(c);c.send({t:'state',s:S,now:Date.now()})});
     c.on('data',m=>process(m,c));
     c.on('close',()=>{
-      conns=conns.filter(x=>x!==c);const p=S.players[c.peer];
-      if(p){const h=HP[c.peer]||{b:'Estable',m:'Estable'};SAVED[p.n]={b:h.b,m:h.m};removePlayer(c.peer);sysMsg(p.n+' salió')}
+      conns=conns.filter(x=>x!==c);if(c._gone)return;
+      const p=S.players[c.peer];
+      if(p){const h=HP[c.peer]||{b:'Estable',m:'Estable'};SAVED[p.n]={b:h.b,m:h.m,slot:p.slot,key:KEY[c.peer]};removePlayer(c.peer);sysMsg(p.n+' salió')}
     });
   });
   peer.on('error',e=>{
     clearTimeout(to);
-    if(e.type==='unavailable-id'){peer.destroy();hostRoom()}else setStatus('Error: '+e.type);
+    if(e.type==='unavailable-id'){
+      try{peer.destroy()}catch(x){}
+      if(resume){
+        if(++hostTries<=25){setStatus('Esperando a que el servidor libere el código '+code+'… ('+hostTries+'/25)');setTimeout(()=>hostRoom(resume),3000)}
+        else setStatus('No se pudo reanudar la sala. Crea una nueva.');
+      }else hostRoom();
+    }else setStatus('Error: '+e.type);
   });
 }
-function joinRoom(){
-  const code=$('#code').value.trim().toUpperCase();
-  if(typeof Peer==='undefined'){setStatus('No se pudo cargar PeerJS. Revisa tu conexión.');return}
-  if(!draft.name.trim()){setStatus('Escribe el nombre de tu personaje.');return}
-  if(!ARCH.includes(draft.arch)){setStatus('Elige el arquetipo de tu personaje.');return}
-  if(!code){setStatus('Escribe el código de la sala.');return}
-  askNotif();
-  upsertChar(); /* se guarda en segundo plano: nunca bloquea la entrada */
+
+/* ---- jugador: entrar y reconectar ---- */
+function startHb(){ /* latido: detecta caídas silenciosas en menos de 30 s */
+  stopHb();lastSeen=Date.now();
+  hb=setInterval(()=>{
+    if(!hostConn||!hostConn.open)return;
+    if(Date.now()-lastSeen>30000){try{hostConn.close()}catch(e){}return}
+    hostConn.send({t:'ping'});
+  },10000);
+}
+const stopHb=()=>{clearInterval(hb);hb=0};
+function lostConn(){
+  if(leaving||isHost||reconnecting)return;
+  reconnecting=true;rcTries=0;
+  $('#connbar').classList.remove('hide');$('#reconbtn').classList.add('hide');
+  setConn('Conexión perdida. Reconectando…');
+  setTimeout(tryReconnect,1500);
+}
+function tryReconnect(){if(!reconnecting)return;rcTries++;setConn('Reconectando (intento '+rcTries+' de 6)…');joinRoom(roomCode,true)}
+function reFail(msg){
+  if(!reconnecting)return;
+  if(rcTries<6){setConn(msg+' Reintentando en 5 s…');setTimeout(tryReconnect,5000)}
+  else{setConn('No se pudo reconectar. '+msg);$('#reconbtn').classList.remove('hide')}
+}
+function reOk(){reconnecting=false;$('#connbar').classList.add('hide');addMsg({t:'sys',text:'Reconectado.'})}
+$('#reconbtn').onclick=()=>{reconnecting=true;rcTries=0;$('#reconbtn').classList.add('hide');tryReconnect()};
+function joinRoom(codeArg,re){
+  const code=(codeArg||$('#code').value).trim().toUpperCase();
+  const fail=msg=>{if(re)reFail(msg);else setStatus(msg)};
+  if(typeof Peer==='undefined'){fail('No se pudo cargar PeerJS. Revisa tu conexión.');return}
+  if(!re){
+    if(!draft.name.trim()){setStatus('Escribe el nombre de tu personaje.');return}
+    if(!ARCH.includes(draft.arch)){setStatus('Elige el arquetipo de tu personaje.');return}
+    if(!code){setStatus('Escribe el código de la sala.');return}
+    askNotif();
+    upsertChar(); /* se guarda en segundo plano: nunca bloquea la entrada */
+  }
   setStatus('Conectando con el servidor…');
   try{peer&&peer.destroy()}catch(e){}
   peer=new Peer(undefined,PEER_OPTS);
   let opened=false;
   const slow=setTimeout(()=>{if(!opened)setStatus('Sigue intentando… con VPN o datos móviles puede tardar hasta 40 segundos.')},10000);
-  const to=setTimeout(()=>{if(!opened){try{peer.destroy()}catch(e){}setStatus(NOP2P)}},45000);
+  const to=setTimeout(()=>{if(!opened){try{peer.destroy()}catch(e){}fail(NOP2P)}},45000);
   const stop=()=>{clearTimeout(slow);clearTimeout(to)};
   peer.on('open',id=>{
     me=id;setStatus('Servidor OK. Buscando la sala '+code+'…');
-    hostConn=peer.connect(PFX+code,{reliable:true});
-    hostConn.on('iceStateChanged',st=>{if(!opened)setStatus('Conexión directa con el DM: '+st+'…')});
-    hostConn.on('error',e=>{if(!opened)setStatus('Error de conexión: '+(e.type||e))});
-    hostConn.on('open',()=>{
-      opened=true;stop();enter(code);
-      hostConn.send({t:'hello',...charMsg(),rest:'',talk:'',fall:'',moral:''}); /* primero un saludo ligero */
+    const conn=hostConn=peer.connect(PFX+code,{reliable:true});
+    conn.on('iceStateChanged',st=>{if(!opened)setStatus('Conexión directa con el DM: '+st+'…')});
+    conn.on('error',e=>{if(!opened)setStatus('Error de conexión: '+(e.type||e))});
+    conn.on('open',()=>{
+      opened=true;stop();enter(code);startHb();if(re)reOk();
+      conn.send({t:'hello',...charMsg(),rest:'',talk:'',fall:'',moral:''}); /* primero un saludo ligero */
       setTimeout(()=>send({t:'char',...charMsg()}),50); /* y luego los sprites */
     });
-    hostConn.on('data',apply);
-    hostConn.on('close',()=>addMsg({t:'sys',text:'Se perdió la conexión con el DM. Para volver, recarga la página y entra de nuevo.'}));
+    conn.on('data',m=>{lastSeen=Date.now();apply(m)});
+    conn.on('close',()=>{if(conn!==hostConn)return;stopHb();if(opened)lostConn()});
   });
   peer.on('disconnected',()=>{if(!opened){try{peer.reconnect()}catch(e){}}});
   peer.on('error',e=>{
     if(opened)return;stop();
-    setStatus(e.type==='peer-unavailable'?'No encontré esa sala. Revisa el código y que el DM tenga la sala abierta.':(['network','server-error','socket-error','socket-closed'].includes(e.type)?SLOW:'Error: '+e.type));
+    fail(e.type==='peer-unavailable'?'No encontré esa sala. Revisa el código y que el DM tenga la sala abierta.':(['network','server-error','socket-error','socket-closed'].includes(e.type)?SLOW:'Error: '+e.type));
   });
 }
-$('#mk').onclick=hostRoom;$('#jn').onclick=joinRoom;
+$('#mk').onclick=()=>hostRoom();$('#jn').onclick=()=>joinRoom();
 const send=m=>{if(isHost)process(m,null);else if(hostConn&&hostConn.open)hostConn.send(m)};
 const bcast=m=>conns.forEach(c=>c.open&&c.send(m));
-const out=m=>{apply(m);bcast(m)};
+const out=m=>{apply(m);bcast(m);dirty=true};
 const sysMsg=text=>out({t:'sys',id:rid(),ts:Date.now(),from:'host',text:clip(text,200)});
 
 /* ---------- lado DM: reglas y validación ---------- */
@@ -522,7 +590,7 @@ function startPlayers(){const o=order();if(o.length)setTurn('players',o[0])}
 function fixEmpty(){if(S.phase==='players'&&!order().length)setTurn('dm','')}
 function removePlayer(id){
   const was=S.phase==='players'&&S.cur===id,nx=was?nextAfter(id):'';
-  out({t:'left',id});delete HP[id];
+  out({t:'left',id});delete HP[id];delete KEY[id];
   if(was)setTurn(nx?'players':'dm',nx);else fixEmpty();
 }
 function setHp(id,b,m){
@@ -535,16 +603,31 @@ function setHp(id,b,m){
 }
 function hello(m,c){
   if(!c||S.players[c.peer])return;
-  const cc=cleanChar(m),slot=[0,1,2,3].find(i=>!Object.values(S.players).some(q=>q.slot===i));
+  const key=clip(m.key,40),cc=cleanChar(m);
+  const oldId=Object.keys(S.players).find(id=>S.players[id].n===cc.n);
+  if(oldId){
+    if(!key||KEY[oldId]!==key){c.send({t:'taken'});setTimeout(()=>c.close(),300);return} /* otro navegador con el mismo nombre */
+    /* el mismo jugador volviendo (recarga o caída): toma el lugar de su conexión anterior */
+    const op=S.players[oldId],oc=conns.find(x=>x.peer===oldId);
+    const p={...op,...cc,arch:cc.arch||op.arch,av:cc.av||op.av,rest:cc.rest||op.rest,talk:cc.talk||op.talk,fall:cc.fall||op.fall,moral:cc.moral||op.moral};
+    HP[c.peer]=HP[oldId]||{b:'Estable',m:'Estable'};KEY[c.peer]=key;delete HP[oldId];delete KEY[oldId];
+    if(oc){oc._gone=true;try{if(oc.open)oc.send({t:'replaced'})}catch(e){}setTimeout(()=>{try{oc.close()}catch(e){}},300)}
+    out({t:'swap',old:oldId,id:c.peer,p});c.send({t:'hp',b:HP[c.peer].b,m:HP[c.peer].m});sysMsg(p.n+' volvió');
+    return;
+  }
+  const sv=SAVED[cc.n],useSv=!!sv&&(!sv.key||sv.key===key);
+  const taken=i=>Object.values(S.players).some(q=>q.slot===i);
+  const slot=useSv&&Number.isInteger(sv.slot)&&sv.slot>=0&&sv.slot<MAXP&&!taken(sv.slot)?sv.slot:[0,1,2,3].find(i=>!taken(i));
   if(slot===undefined){c.send({t:'full'});setTimeout(()=>c.close(),400);return}
-  const sv=SAVED[cc.n],h=sv&&PH.includes(sv.b)&&MS.includes(sv.m)?{b:sv.b,m:sv.m}:{b:'Estable',m:'Estable'};
+  const h=useSv&&PH.includes(sv.b)&&MS.includes(sv.m)?{b:sv.b,m:sv.m}:{b:'Estable',m:'Estable'};
   const p={...cc,arch:cc.arch||'',slot,hi:Math.min(PH.indexOf(h.b),3),mi:MS.indexOf(h.m),dead:h.b==='Muerto'};
-  HP[c.peer]=h;
+  HP[c.peer]=h;KEY[c.peer]=key;
   out({t:'join',id:c.peer,p});c.send({t:'hp',b:h.b,m:h.m});sysMsg(p.n+' se unió');
 }
 const cleanRe=r=>r&&typeof r==='object'?{id:clip(r.id,20),name:clip(r.name,40),text:clip(r.text,90)}:null;
 function process(m,c){
   const who=c?c.peer:'host',t=m.t,H=who==='host';
+  if(t==='ping'){if(c&&c.open)c.send({t:'pong'});return}
   if(t==='hello')return hello(m,c);
   if(!H&&!S.players[who])return;
   const p=S.players[who];
@@ -605,6 +688,10 @@ function pushChat(m,k){
 function apply(m){
   switch(m.t){
     case 'state':{S=m.s;const off=Date.now()-m.now;['chat','ooc'].forEach(k=>S[k].forEach(x=>{x._at=x.ts?x.ts+off:Date.now()}));renderAll();break}
+    case 'pong':break;
+    case 'taken':bail('Ya hay alguien con ese nombre en la sala. Usa otro nombre para tu personaje.');break;
+    case 'replaced':bail('Entraste a la sala desde otra pestaña o dispositivo.');break;
+    case 'swap':{delete S.players[m.old];S.players[m.id]=m.p;if(S.cur===m.old)S.cur=m.id;renderPlayers();break}
     case 'full':bail('La sala está llena (máximo 4 jugadores sin contar al DM).');break;
     case 'kicked':bail('El DM te ha expulsado de la sala.');break;
     case 'hp':myHp={b:m.b,m:m.m};renderEstado();break;
@@ -661,11 +748,15 @@ const chime=()=>tones([[1175,.12,0,.2],[1568,.1,.1,.22]]); /* chat Off: dos nota
 function notify(m,ooc){
   if(ooc)chime();else bell();
   if(document.hidden){
-    unread++;document.title='('+unread+') Moths & Fishers v5.8';
+    unread++;document.title='('+unread+') Moths & Fishers v5.9';
     try{if(window.Notification&&Notification.permission==='granted')new Notification(m.name+(ooc?' (Off)':''),{body:m.t==='act'?m.label:m.text,silent:true})}catch(e){}
   }
 }
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){unread=0;document.title='Moths & Fishers v5.8'}});
+document.addEventListener('visibilitychange',()=>{
+  if(document.hidden)return;
+  unread=0;document.title='Moths & Fishers v5.9';
+  if(!isHost&&roomCode&&!leaving&&!reconnecting&&(!hostConn||!hostConn.open))lostConn(); /* al volver a la pestaña, comprueba la conexión */
+});
 
 /* ---------- render ---------- */
 function renderAll(){renderBg();renderNpc();renderPlayers();renderLog()}
@@ -776,7 +867,8 @@ function nextNarr(){
 }
 
 /* ---------- acciones (jugadores) ---------- */
-const apNew=()=>({a:-1,d:-1,i:-1,g:'',luck:false});
+const apNew=()=>({a:-1,d:-1,i:-1,g:'',luck:false,pg:0});
+const PG=6; /* acciones por pestaña */
 let ap=apNew();
 function closeAct(){$('#actpop').classList.add('hide');ap=apNew()}
 const tagMod=g=>modOf((S.players[me]||{}).arch,g)+hpMod(myHp); /* tag del arquetipo + estado, en un solo número */
@@ -812,16 +904,26 @@ function renderAct(){
     setTimeout(()=>inp.focus(),0);return;
   }
   if(ap.a<0){
-    AMB.forEach((X,i)=>pop.append(mk(X.n,()=>{ap.a=i;renderAct()},X.tags.join(' · '))));
-    pop.append(mk('Probar suerte',()=>{ap.luck=true;renderAct()},fmtMod(hpMod(myHp))));
+    const g=el('div','grid2');
+    AMB.forEach((X,i)=>g.append(mk(X.n,()=>{ap.a=i;renderAct()},X.tags.join(' · '))));
+    g.append(mk('Probar suerte',()=>{ap.luck=true;renderAct()},fmtMod(hpMod(myHp))));
+    pop.append(g);
   }else if(ap.d<0){
     pop.append(el('b','',A.n),tagLine());
-    A.ds.forEach(([dn],i)=>pop.append(mk(DIST[dn],()=>{ap.d=i;renderAct()})));
+    A.ds.forEach(([dn],i)=>pop.append(mk(DIST[dn],()=>{ap.d=i;ap.pg=0;renderAct()})));
     pop.append(back(()=>{ap=apNew();renderAct()}));
   }else{
+    const list=A.ds[ap.d][1],pages=Math.ceil(list.length/PG);
+    ap.pg=Math.max(0,Math.min(ap.pg,pages-1));const base=ap.pg*PG;
     pop.append(el('b','',A.n+' › '+DIST[A.ds[ap.d][0]]),tagLine());
-    A.ds[ap.d][1].forEach((nm,i)=>pop.append(mk(nm,()=>{ap.i=i;renderAct()})));
-    pop.append(back(()=>{ap.d=-1;renderAct()}));
+    if(pages>1){ /* pestañas: así el menú no tapa la pantalla */
+      const tabs=el('div','pgs');
+      for(let k=0;k<pages;k++){const b=el('button',k===ap.pg?'pri':'',String(k+1));b.title='Página '+(k+1)+' de '+pages;b.onclick=()=>{ap.pg=k;renderAct()};tabs.append(b)}
+      pop.append(tabs);
+    }
+    const g=el('div','grid2');
+    list.slice(base,base+PG).forEach((nm,j)=>g.append(mk(nm,()=>{ap.i=base+j;renderAct()})));
+    pop.append(g,back(()=>{ap.d=-1;renderAct()}));
   }
 }
 $('#actbtn').onclick=()=>{const pop=$('#actpop'),was=pop.classList.contains('hide');closeAct();if(was){pop.classList.remove('hide');renderAct()}};
@@ -903,6 +1005,7 @@ function showDetail(id){
 
 /* ---------- panel del DM ---------- */
 function renderDM(){
+  renderBgScenes();
   const box=$('#npclib');box.replaceChildren();
   npcLib.forEach(n=>{
     const on=!!S.npc&&S.npc.id===n.id,d=el('div','ch'+(on?' on':'')),i=el('img');i.src=n.src;i.alt='';
@@ -928,9 +1031,37 @@ $('#npcfile').onchange=async e=>{
 };
 $('#npcclear').onclick=()=>send({t:'npc',npc:null});
 $('#narrname').oninput=e=>{prof.narr=e.target.value;saveProf()};
+function renderBgScenes(){
+  const bb=$('#bglib');bb.replaceChildren();
+  bgLib.forEach(b=>{
+    const on=S.bg===b.src,d=el('div','ch'+(on?' on':'')),i=el('img');i.src=b.src;i.alt='';
+    d.append(i,el('span','',b.name));d.onclick=()=>send({t:'bg',src:b.src});
+    const x=el('button','x','×');x.title='Borrar de mis fondos';
+    x.onclick=e=>{e.stopPropagation();if(confirm('¿Borrar el fondo «'+b.name+'»?')){dbDel(b.id).catch(()=>{});bgLib=bgLib.filter(k=>k!==b);renderDM()}};
+    d.append(x);bb.append(d);
+  });
+  const sc=$('#sclib');sc.replaceChildren();
+  if(!scenes.length)sc.append(el('span','mute','Aún no hay escenas.'));
+  scenes.forEach(z=>{
+    const b=el('button','',z.name);b.onclick=()=>{send({t:'bg',src:z.bg||''});send({t:'npc',npc:z.npc||null})};
+    const x=el('button','','×');x.title='Borrar escena';
+    x.onclick=()=>{if(confirm('¿Borrar la escena «'+z.name+'»?')){dbDel(z.id).catch(()=>{});scenes=scenes.filter(k=>k!==z);renderDM()}};
+    sc.append(b,x);
+  });
+}
 $('#bgfile').onchange=async e=>{
   const f=e.target.files[0];e.target.value='';if(!f)return;
-  try{send({t:'bg',src:await shrink(f,1280,'image/jpeg',.82)})}catch(x){}
+  try{
+    const src=await shrink(f,1280,'image/jpeg',.82),name=clip($('#bgname').value.trim()||f.name.replace(/\.[^.]+$/,''),24);
+    const b={id:rid(),kind:'bg',name,src};bgLib.push(b);dbPut(b).catch(()=>{});
+    $('#bgname').value='';send({t:'bg',src});renderDM();
+  }catch(x){}
+};
+$('#scsave').onclick=()=>{
+  const name=clip($('#scname').value.trim(),24);
+  if(!name){alert('Ponle un nombre a la escena.');return}
+  const z={id:rid(),kind:'scene',name,bg:S.bg,npc:S.npc};
+  scenes.push(z);dbPut(z).catch(()=>{});$('#scname').value='';renderDM();
 };
 $('#bgclear').onclick=()=>send({t:'bg',src:''});
 
@@ -943,7 +1074,7 @@ function chatText(){
     if(m.t==='act')return '['+tm(m)+'] '+m.name+' — ACCIÓN: '+m.label+' | d20 ('+m.r+') '+(m.mod<0?'-':'+')+' '+Math.abs(m.mod)+' = '+m.total+(m.text?' | '+m.text:'')+q;
     return '['+tm(m)+'] '+m.name+(m.t==='narr'?' (narración)':'')+': '+m.text+q+e;
   };
-  return 'MOTHS & FISHERS v5.8 — CHAT PRINCIPAL\n\n'+S.chat.map(line).join('\n')+'\n\n--- CHAT FUERA DE ROL ---\n\n'+S.ooc.map(line).join('\n')+'\n';
+  return 'MOTHS & FISHERS v5.9 — CHAT PRINCIPAL\n\n'+S.chat.map(line).join('\n')+'\n\n--- CHAT FUERA DE ROL ---\n\n'+S.ooc.map(line).join('\n')+'\n';
 }
 function download(name,type,text){
   const a=document.createElement('a');
@@ -952,7 +1083,7 @@ function download(name,type,text){
 $('#savegame').onclick=()=>{
   const pl=Object.assign({},SAVED);
   Object.keys(S.players).forEach(id=>{const h=HP[id];if(h)pl[S.players[id].n]={b:h.b,m:h.m}});
-  download('partida-moths-fishers.json','application/json',JSON.stringify({app:'moths-fishers',v:'5.8',bg:S.bg,npc:S.npc,players:pl}));
+  download('partida-moths-fishers.json','application/json',JSON.stringify({app:'moths-fishers',v:'5.9',bg:S.bg,npc:S.npc,players:pl}));
   setTimeout(()=>download('chat-moths-fishers.txt','text/plain;charset=utf-8',chatText()),500);
 };
 $('#loadgame').onchange=async e=>{
@@ -967,7 +1098,7 @@ $('#loadgame').onchange=async e=>{
 
 /* ---------- salir y chat Off ---------- */
 $('#exit').onclick=()=>{
-  if(confirm(isHost?'Cerrarás la sala para todos. ¿Salir?':'¿Salir de la sala?')){try{peer&&peer.destroy()}catch(e){}location.reload()}
+  if(confirm(isHost?'Cerrarás la sala para todos. ¿Salir?':'¿Salir de la sala?')){leaving=true;clearSess();try{peer&&peer.destroy()}catch(e){}location.reload()}
 };
 $('#offbtn').onclick=()=>{
   view=view==='main'?'ooc':'main';ctx=null;renderCtx();$('#ct').value='';
@@ -976,7 +1107,68 @@ $('#offbtn').onclick=()=>{
 };
 
 /* ---------- arranque ---------- */
-dbAll().then(a=>{chars=a.filter(c=>c.kind!=='npc').map(c=>({...blankChar(),...c}));npcLib=a.filter(c=>c.kind==='npc');renderSaved()}).catch(()=>{});
+/* ---------- el DM guarda su sala para poder reanudarla si recarga la página ---------- */
+function rosterNow(){
+  const r=Object.assign({},SAVED);
+  Object.keys(S.players).forEach(id=>{const p=S.players[id],h=HP[id];if(h)r[p.n]={b:h.b,m:h.m,slot:p.slot,key:KEY[id]}});
+  return r;
+}
+setInterval(()=>{
+  if(!dirty||!isHost||!roomCode)return;dirty=false;
+  dbPut({id:'__snap__',kind:'snap',code:roomCode,dmName,bg:S.bg,npc:S.npc,chat:S.chat,ooc:S.ooc,roster:rosterNow(),at:Date.now()}).catch(()=>{});
+},3000);
+function restoreFrom(sn){
+  const now=Date.now();
+  S.bg=sn.bg||'';S.npc=sn.npc||null;S.phase='dm';S.cur=''; /* la ronda vuelve al turno del DM; los jugadores recuperan su lugar al entrar */
+  S.chat=(sn.chat||[]).filter(m=>now-(m.ts||now)<lifeOf(m));S.ooc=(sn.ooc||[]).filter(m=>now-(m.ts||now)<lifeOf(m));
+  [...S.chat,...S.ooc].forEach(m=>{m._at=m.ts||now});
+  SAVED=sn.roster||{};renderAll();dirty=true;
+}
+
+/* ---------- respaldo de personajes, NPCs, fondos y escenas ---------- */
+async function exportBackup(){
+  let a=[];try{a=(await dbAll()).filter(c=>c.kind!=='snap')}catch(e){}
+  if(!a.length){alert('Todavía no tienes nada guardado en este navegador.');return}
+  download('respaldo-moths-fishers.json','application/json',JSON.stringify({app:'moths-fishers-backup',v:'5.9',items:a}));
+}
+async function importBackup(f){
+  let d;try{d=JSON.parse(await f.text());if(d.app!=='moths-fishers-backup'||!Array.isArray(d.items))throw 0}catch(x){alert('Ese archivo no es un respaldo válido.');return}
+  let n=0;
+  for(const it of d.items){
+    if(it&&typeof it.id==='string'&&it.id!=='__snap__'&&it.kind!=='snap'){try{await dbPut(it);n++}catch(e){}}
+  }
+  try{await loadLocal()}catch(e){}
+  renderSaved();if($('#dlg').open)renderLists();
+  alert(n+' elementos restaurados.');
+}
+document.querySelectorAll('.bkexp').forEach(b=>b.onclick=exportBackup);
+document.querySelectorAll('.bkimp').forEach(b=>b.onclick=()=>$('#bkfile').click());
+$('#bkfile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)importBackup(f)};
+
+/* ---------- arranque: datos guardados y aviso de sesión anterior ---------- */
+async function loadLocal(){
+  const a=await dbAll();
+  chars=a.filter(c=>!c.kind).map(c=>({...blankChar(),...c}));
+  npcLib=a.filter(c=>c.kind==='npc');bgLib=a.filter(c=>c.kind==='bg');scenes=a.filter(c=>c.kind==='scene');
+  snap=a.find(c=>c.kind==='snap')||null;
+}
+function showResume(){
+  const bar=$('#resumebar');bar.classList.add('hide');
+  let sess=null;try{sess=JSON.parse(localStorage.getItem('sess')||'null')}catch(e){}
+  if(!sess)return;
+  if(sess.role==='dm'){
+    if(!snap||snap.code!==sess.code)return;
+    $('#restxt').textContent='Dejaste abierta la sala '+sess.code+'.';$('#resgo').textContent='Reanudar sala';
+    $('#resgo').onclick=()=>{hostTries=0;hostRoom(snap)};
+  }else{
+    const c=chars.find(x=>x.id===sess.charId);if(!c)return;
+    $('#restxt').textContent='Estabas en la sala '+sess.code+' como '+c.name+'.';$('#resgo').textContent='Reconectar';
+    $('#resgo').onclick=()=>{draft={...c};if(!ARCH.includes(draft.arch))draft.arch='';$('#code').value=sess.code;joinRoom(sess.code)};
+  }
+  $('#resno').onclick=()=>{clearSess();bar.classList.add('hide')};
+  bar.classList.remove('hide');
+}
+loadLocal().catch(()=>{}).then(()=>{renderSaved();showResume()});
 renderEditor($('#plEditor'));
 </script>
 </body>
